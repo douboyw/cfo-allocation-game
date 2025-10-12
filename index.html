@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Allocation Game - CFO Summit 2025</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <style>
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes scaleIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .animate-fadeIn { animation: fadeIn 0.3s ease-out; }
+        .animate-scaleIn { animation: scaleIn 0.3s ease-out; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-900 via-blue-950 to-slate-800 min-h-screen">
+    <div id="app"></div>
+
+    <script>
+        // Wait for Firebase to load
+        let initAttempts = 0;
+        const maxAttempts = 10;
+        
+        function tryInitialize() {
+            initAttempts++;
+            
+            if (typeof firebase !== 'undefined') {
+                initializeFirebase();
+            } else if (initAttempts < maxAttempts) {
+                console.log(`Waiting for Firebase... attempt ${initAttempts}`);
+                setTimeout(tryInitialize, 500);
+            } else {
+                console.error('Firebase failed to load after multiple attempts');
+                document.getElementById('app').innerHTML = `
+                    <div class="min-h-screen flex items-center justify-center p-4">
+                        <div class="bg-white rounded-2xl p-8 max-w-md text-center">
+                            <div class="text-6xl mb-4">⚠️</div>
+                            <h2 class="text-2xl font-bold text-red-600 mb-4">Connection Error</h2>
+                            <p class="text-slate-700 mb-4">Could not connect to the game server. Please:</p>
+                            <ul class="text-left text-slate-600 mb-6 space-y-2">
+                                <li>• Check your internet connection</li>
+                                <li>• Refresh the page</li>
+                                <li>• Try a different browser</li>
+                            </ul>
+                            <button onclick="location.reload()" class="bg-blue-500 text-white px-6 py-3 rounded-lg font-bold">
+                                Refresh Page
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function initializeFirebase() {
+            try {
+                // Firebase Configuration
+                const firebaseConfig = {
+                    apiKey: "AIzaSyA0ybiOhMHIzWf3nrGDh0mm03Gz0DBj5ts",
+                    authDomain: "the-allocation-game.firebaseapp.com",
+                    projectId: "the-allocation-game",
+                    storageBucket: "the-allocation-game.firebasestorage.app",
+                    messagingSenderId: "879053912869",
+                    appId: "1:879053912869:web:69b399718d0e9499d0b8cc"
+                };
+
+                firebase.initializeApp(firebaseConfig);
+                window.db = firebase.firestore();
+                console.log("✅ Firebase initialized successfully!");
+                
+                // Start the app
+                initializeApp();
+            } catch (error) {
+                console.error("Firebase initialization error:", error);
+                alert('⚠️ Could not connect to Firebase. Please refresh the page.');
+            }
+        }
+
+        // Start initialization on page load
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', tryInitialize);
+        } else {
+            tryInitialize();
+        }
+
+        // Game State
+        let gameState = {
+            screen: 'intro',
+            round: 0,
+            score: 0,
+            selectedChoice: null,
+            showExpertAnalysis: false,
+            leaderboard: [],
+            showLeaderboard: false,
+            playerName: '',
+            scoreSaved: false,
+            competitionId: 'cfo-summit-2025',
+            isLoading: false,
+            metrics: { arr: 50, ebitdaMargin: 50, nrr: 50, multipleExpansion: 50 }
+        };
+
+        // Scenarios Data
+        const scenarios = [
+            {
+                title: "Rule of 40 Optimization",
+                situation: "Your $50M ARR SaaS portfolio company has 25% growth + 10% EBITDA margin (Rule of 35). You have $8M in dry powder. Current NRR is 105%.",
+                choices: [
+                    { text: "Invest $5M in sales & marketing to accelerate growth to 35%", impact: { arr: 20, ebitdaMargin: -15, nrr: 5, multipleExpansion: 15 }, points: 30, feedback: "Excellent! High-growth SaaS commands premium multiples." },
+                    { text: "Cut S&M spend, optimize to 20% EBITDA margin", impact: { arr: -10, ebitdaMargin: 20, nrr: -5, multipleExpansion: -5 }, points: 15, feedback: "Too early for margin harvest." },
+                    { text: "Balance: $3M to sales, $2M to product for upsell", impact: { arr: 10, ebitdaMargin: -5, nrr: 15, multipleExpansion: 20 }, points: 35, feedback: "Strategic! NRR expansion drives durable growth." },
+                    { text: "Deploy to customer success to protect NRR", impact: { arr: 5, ebitdaMargin: -5, nrr: 10, multipleExpansion: 5 }, points: 20, feedback: "Defensive but 105% NRR is healthy." }
+                ]
+            },
+            {
+                title: "Add-On Acquisition Decision",
+                situation: "$25M ARR target, 90% NRR, 15% EBITDA margin. Asking 6x ARR ($150M). Your portco is 3x ARR.",
+                choices: [
+                    { text: "Acquire at 5.5x ARR with earnout on NRR improvement", impact: { arr: 25, ebitdaMargin: 5, nrr: 10, multipleExpansion: 20 }, points: 35, feedback: "Smart! Disciplined on price." },
+                    { text: "Pass - focus on organic product roadmap", impact: { arr: 5, ebitdaMargin: 5, nrr: 5, multipleExpansion: 0 }, points: 10, feedback: "Too conservative." },
+                    { text: "Acquire at ask (6x), finance with unitranche debt", impact: { arr: 20, ebitdaMargin: -5, nrr: 5, multipleExpansion: 10 }, points: 20, feedback: "Overpaying impacts fund returns." },
+                    { text: "Counter at 4.5x ARR, all cash", impact: { arr: 15, ebitdaMargin: 10, nrr: 5, multipleExpansion: 15 }, points: 25, feedback: "Aggressive low-ball may kill deal." }
+                ]
+            },
+            {
+                title: "SaaS Metrics Trade-Off",
+                situation: "CAC payback period is 18 months, industry best-in-class is 12. You can invest $4M to reduce it.",
+                choices: [
+                    { text: "Invest in CAC payback optimization now", impact: { arr: -5, ebitdaMargin: 15, nrr: 5, multipleExpansion: 15 }, points: 30, feedback: "Right call! Unit economics matter." },
+                    { text: "Maintain pace - optimize post-exit", impact: { arr: 10, ebitdaMargin: -5, nrr: 0, multipleExpansion: -10 }, points: 10, feedback: "Kicking the can." },
+                    { text: "Split approach: optimize enterprise, keep SMB spend high", impact: { arr: 5, ebitdaMargin: 10, nrr: 10, multipleExpansion: 20 }, points: 35, feedback: "Sophisticated!" },
+                    { text: "Double down on growth, ignore payback metrics", impact: { arr: 15, ebitdaMargin: -15, nrr: 0, multipleExpansion: -15 }, points: 5, feedback: "2021 playbook doesn't work anymore." }
+                ]
+            },
+            {
+                title: "Portfolio Optimization",
+                situation: "One product line is $15M ARR but dragging down company NRR to 102%.",
+                choices: [
+                    { text: "Divest and reallocate eng to core product", impact: { arr: -5, ebitdaMargin: 10, nrr: 20, multipleExpansion: 25 }, points: 35, feedback: "Brilliant! Surgical portfolio management." },
+                    { text: "Keep - maintain $60M ARR scale threshold", impact: { arr: 0, ebitdaMargin: -5, nrr: -5, multipleExpansion: -10 }, points: 10, feedback: "Scale matters, but not at expense of quality." },
+                    { text: "Harvest mode: minimal investment", impact: { arr: -10, ebitdaMargin: 5, nrr: 0, multipleExpansion: -5 }, points: 15, feedback: "Half measure." },
+                    { text: "Invest $2M to turn around the product", impact: { arr: 0, ebitdaMargin: -10, nrr: -5, multipleExpansion: -10 }, points: 5, feedback: "Throwing good money after bad." }
+                ]
+            },
+            {
+                title: "Pre-Exit Strategy",
+                situation: "18 months to exit. $100M ARR, 25% EBITDA margin, 110% NRR.",
+                choices: [
+                    { text: "Push to $140M ARR (maximize top-line)", impact: { arr: 25, ebitdaMargin: -10, nrr: 5, multipleExpansion: 15 }, points: 30, feedback: "Strong! $140M ARR crosses key threshold." },
+                    { text: "Optimize to 28% EBITDA (margin focus)", impact: { arr: 10, ebitdaMargin: 15, nrr: 0, multipleExpansion: 10 }, points: 25, feedback: "Solid execution story." },
+                    { text: "Balanced: $130M ARR at 23% EBITDA", impact: { arr: 15, ebitdaMargin: 5, nrr: 5, multipleExpansion: 20 }, points: 35, feedback: "Goldilocks! Rule of 45+." },
+                    { text: "Invest in non-organic product expansion", impact: { arr: 10, ebitdaMargin: -15, nrr: 0, multipleExpansion: -10 }, points: 10, feedback: "Too risky 18 months from exit." }
+                ]
+            },
+            {
+                title: "Platform vs Tuck-In Strategy",
+                situation: "You have $20M for M&A. Option A: $15M ARR platform at 5x. Option B: Two $5M ARR tuck-ins at 3x each.",
+                choices: [
+                    { text: "Buy the platform - bigger is better", impact: { arr: 20, ebitdaMargin: -10, nrr: 0, multipleExpansion: 15 }, points: 25, feedback: "Bold but 5x is expensive." },
+                    { text: "Two tuck-ins - faster integration", impact: { arr: 15, ebitdaMargin: 5, nrr: 10, multipleExpansion: 20 }, points: 35, feedback: "Smart! Better value at 3x." },
+                    { text: "One tuck-in + $10M in organic sales", impact: { arr: 20, ebitdaMargin: 0, nrr: 15, multipleExpansion: 25 }, points: 30, feedback: "Balanced approach!" },
+                    { text: "Pass on both - organic only", impact: { arr: 5, ebitdaMargin: 5, nrr: 5, multipleExpansion: -10 }, points: 10, feedback: "PE playbook requires inorganic." }
+                ]
+            }
+        ];
+
+        function getGrade(score) {
+            if (score >= 200) return { grade: 'A+', title: 'SaaS PE Master CFO', color: 'text-emerald-600' };
+            if (score >= 180) return { grade: 'A', title: 'Top Quartile Performer', color: 'text-green-500' };
+            if (score >= 150) return { grade: 'B+', title: 'Solid PE Operator', color: 'text-blue-500' };
+            if (score >= 120) return { grade: 'B', title: 'Building Expertise', color: 'text-blue-400' };
+            return { grade: 'C', title: 'Keep Learning', color: 'text-yellow-600' };
+        }
+
+        async function loadLeaderboard() {
+            if (!window.db) return;
+            try {
+                gameState.isLoading = true;
+                render();
+                const snapshot = await window.db.collection('competitions').doc(gameState.competitionId).collection('scores').orderBy('score', 'desc').limit(100).get();
+                gameState.leaderboard = [];
+                snapshot.forEach(doc => gameState.leaderboard.push({ id: doc.id, ...doc.data() }));
+                console.log(`✅ Loaded ${gameState.leaderboard.length} scores`);
+            } catch (error) {
+                console.error('Error loading leaderboard:', error);
+            } finally {
+                gameState.isLoading = false;
+                render();
+            }
+        }
+
+        async function saveScore() {
+            if (!gameState.playerName.trim() || !window.db) return;
+            try {
+                gameState.isLoading = true;
+                render();
+                const entry = { name: gameState.playerName.trim(), score: gameState.score, timestamp: Date.now(), grade: getGrade(gameState.score).grade, competitionId: gameState.competitionId };
+                await window.db.collection('competitions').doc(gameState.competitionId).collection('scores').add(entry);
+                console.log("✅ Score saved!");
+                gameState.scoreSaved = true;
+                await loadLeaderboard();
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to save. Try again.');
+            } finally {
+                gameState.isLoading = false;
+                render();
+            }
+        }
+
+        function handleChoice(index) {
+            gameState.selectedChoice = index;
+            setTimeout(() => { gameState.showExpertAnalysis = true; render(); }, 500);
+        }
+
+        function closeExpertAnalysis() {
+            const choice = scenarios[gameState.round].choices[gameState.selectedChoice];
+            gameState.metrics.arr = Math.max(0, Math.min(100, gameState.metrics.arr + choice.impact.arr));
+            gameState.metrics.ebitdaMargin = Math.max(0, Math.min(100, gameState.metrics.ebitdaMargin + choice.impact.ebitdaMargin));
+            gameState.metrics.nrr = Math.max(0, Math.min(100, gameState.metrics.nrr + choice.impact.nrr));
+            gameState.metrics.multipleExpansion = Math.max(0, Math.min(100, gameState.metrics.multipleExpansion + choice.impact.multipleExpansion));
+            gameState.score += choice.points;
+            gameState.showExpertAnalysis = false;
+            if (gameState.round < scenarios.length - 1) {
+                gameState.round++;
+                gameState.selectedChoice = null;
+            } else {
+                gameState.screen = 'results';
+                loadLeaderboard();
+            }
+            render();
+        }
+
+        function restartGame() {
+            gameState = { screen: 'intro', round: 0, score: 0, selectedChoice: null, showExpertAnalysis: false, leaderboard: [], showLeaderboard: false, playerName: '', scoreSaved: false, competitionId: 'cfo-summit-2025', isLoading: false, metrics: { arr: 50, ebitdaMargin: 50, nrr: 50, multipleExpansion: 50 } };
+            render();
+        }
+
+        function initializeApp() {
+            render();
+            setInterval(() => {
+                if (gameState.showLeaderboard && gameState.screen === 'results' && window.db) loadLeaderboard();
+            }, 5000);
+        }
+
+        function render() {
+            const app = document.getElementById('app');
+            if (gameState.screen === 'intro') app.innerHTML = renderIntro();
+            else if (gameState.screen === 'playing') app.innerHTML = renderGame();
+            else if (gameState.screen === 'results') app.innerHTML = renderResults();
+            if (gameState.showExpertAnalysis) app.innerHTML += renderExpertAnalysis();
+        }
+
+        function renderIntro() {
+            return `<div class="min-h-screen p-4 flex items-center justify-center"><div class="max-w-2xl w-full bg-white rounded-3xl shadow-2xl p-8"><div class="text-center mb-8"><div class="bg-gradient-to-br from-orange-500 to-orange-600 p-4 rounded-2xl inline-block mb-4"><svg class="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div><h1 class="text-4xl font-bold text-slate-900 mb-2">The Allocation Game</h1><p class="text-xl text-slate-600">CFO Summit 2025</p></div><div class="bg-orange-50 rounded-2xl p-6 mb-6 border-2 border-orange-200"><h2 class="text-xl font-bold text-slate-900 mb-4">🎯 Live Competition</h2><ul class="space-y-2 text-slate-700"><li>• 6 Real PE Scenarios</li><li>• Expert Feedback</li><li>• Live Leaderboard</li><li>• Compete with 70+ Players</li></ul></div><div class="bg-blue-50 rounded-2xl p-6 mb-6 border-2 border-blue-200"><label class="block text-sm font-bold text-slate-900 mb-2">Competition ID:</label><input type="text" id="competitionId" value="${gameState.competitionId}" class="w-full px-4 py-3 rounded-lg border-2 border-blue-300 focus:border-blue-500 focus:outline-none text-lg font-semibold"/><p class="text-xs text-slate-600 mt-2">📢 All players use same ID</p></div><button onclick="gameState.competitionId = document.getElementById('competitionId').value; gameState.screen = 'playing'; render();" class="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold py-4 px-8 rounded-xl text-lg shadow-xl">🚀 Start Challenge</button></div></div>`;
+        }
+
+        function renderGame() {
+            const s = scenarios[gameState.round];
+            return `<div class="min-h-screen p-4"><div class="max-w-4xl mx-auto py-8"><div class="bg-white rounded-3xl shadow-2xl p-8 mb-6"><h2 class="text-3xl font-bold text-slate-900 mb-2">Scenario ${gameState.round + 1} of 6</h2><p class="text-orange-600 font-bold text-xl mb-4">${gameState.score} points</p><div class="w-full bg-slate-100 rounded-full h-4"><div class="bg-gradient-to-r from-orange-500 to-blue-900 h-4 rounded-full" style="width: ${((gameState.round + 1) / 6) * 100}%"></div></div></div><div class="bg-white rounded-3xl shadow-2xl p-8"><h1 class="text-3xl font-bold text-slate-900 mb-4">${s.title}</h1><p class="text-xl text-slate-700 mb-8">${s.situation}</p><div class="space-y-4">${s.choices.map((c, i) => `<button onclick="handleChoice(${i})" ${gameState.selectedChoice !== null ? 'disabled' : ''} class="w-full text-left p-6 rounded-2xl border-2 ${gameState.selectedChoice === i ? 'bg-orange-50 border-orange-500' : gameState.selectedChoice !== null ? 'bg-slate-50 border-slate-200 opacity-50' : 'bg-white border-slate-200 hover:border-orange-400'}"><div class="flex gap-4"><div class="w-8 h-8 rounded-full border-2 flex items-center justify-center ${gameState.selectedChoice === i ? 'border-orange-500 bg-orange-500' : 'border-slate-300'}">${gameState.selectedChoice === i ? '<div class="w-4 h-4 bg-white rounded-full"></div>' : ''}</div><span class="text-slate-900 font-semibold text-lg">${c.text}</span></div></button>`).join('')}</div></div></div></div>`;
+        }
+
+        function renderExpertAnalysis() {
+            const c = scenarios[gameState.round].choices[gameState.selectedChoice];
+            return `<div class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"><div class="bg-white rounded-2xl p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto"><button onclick="closeExpertAnalysis()" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-5 px-8 rounded-xl text-xl mb-6">⬇️ Continue ⬇️</button><div class="grid md:grid-cols-2 gap-6"><div><div class="text-center mb-6"><h2 class="text-2xl font-bold">Expert Analysis</h2></div><div class="bg-orange-50 rounded-xl p-6 mb-6 border-2 border-orange-200"><p class="font-bold text-slate-900 mb-3">${c.text}</p><p class="text-slate-700">${c.feedback}</p></div><div class="text-center"><span class="text-3xl font-bold text-orange-600">+${c.points} Points</span></div></div><div class="bg-blue-50 rounded-xl p-6"><h3 class="font-bold mb-4">Impact:</h3><div class="space-y-3"><div class="bg-white p-3 rounded-lg"><div class="text-xs text-slate-600">ARR Growth</div><div class="text-lg font-bold">${c.impact.arr > 0 ? '+' : ''}${c.impact.arr}%</div></div><div class="bg-white p-3 rounded-lg"><div class="text-xs text-slate-600">EBITDA</div><div class="text-lg font-bold">${c.impact.ebitdaMargin > 0 ? '+' : ''}${c.impact.ebitdaMargin}%</div></div><div class="bg-white p-3 rounded-lg"><div class="text-xs text-slate-600">NRR</div><div class="text-lg font-bold">${c.impact.nrr > 0 ? '+' : ''}${c.impact.nrr}%</div></div><div class="bg-white p-3 rounded-lg"><div class="text-xs text-slate-600">Multiple</div><div class="text-lg font-bold">${c.impact.multipleExpansion > 0 ? '+' : ''}${c.impact.multipleExpansion}%</div></div></div></div></div></div></div>`;
+        }
+
+        function renderResults() {
+            const r = getGrade(gameState.score);
+            return `<div class="min-h-screen p-4 flex items-center justify-center"><div class="max-w-2xl w-full bg-white rounded-3xl shadow-2xl p-8 max-h-[90vh] overflow-y-auto"><div class="text-center mb-8"><h1 class="text-4xl font-bold mb-2">Complete!</h1><div class="text-6xl font-bold mb-2 ${r.color}">${r.grade}</div><p class="text-2xl font-semibold mb-4">${r.title}</p><div class="inline-flex gap-2 px-6 py-3 bg-orange-100 rounded-xl"><span class="text-3xl font-bold text-orange-600">${gameState.score} / 210</span></div></div>${!gameState.scoreSaved ? `<div class="bg-slate-50 rounded-2xl p-6 mb-6"><h2 class="text-xl font-bold mb-4">💾 Save Score</h2><div class="flex gap-3"><input type="text" id="playerName" placeholder="Your name..." class="flex-1 px-4 py-3 rounded-lg border-2 focus:border-orange-500 focus:outline-none" maxlength="30"/><button onclick="gameState.playerName = document.getElementById('playerName').value; saveScore();" class="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-lg">${gameState.isLoading ? '⏳' : '💾'} Save</button></div></div>` : '<div class="bg-green-50 rounded-2xl p-6 mb-6 text-center"><div class="text-4xl mb-2">🎉</div><h2 class="text-xl font-bold text-green-700">Saved!</h2></div>'}<button onclick="gameState.showLeaderboard = !gameState.showLeaderboard; if(gameState.showLeaderboard) loadLeaderboard(); render();" class="w-full bg-blue-900 hover:bg-blue-800 text-white font-bold py-4 px-8 rounded-xl mb-4">🏆 ${gameState.showLeaderboard ? 'Hide' : 'View'} Leaderboard</button>${gameState.showLeaderboard && gameState.leaderboard.length > 0 ? `<div class="bg-slate-50 rounded-2xl p-6 mb-6"><h2 class="text-xl font-bold mb-4">Top Players</h2><div class="space-y-2 max-h-96 overflow-y-auto">${gameState.leaderboard.slice(0, 50).map((e, i) => `<div class="flex justify-between p-3 rounded-lg ${i < 3 ? 'bg-orange-100' : 'bg-white'}"><div class="flex gap-3"><div class="w-8 h-8 rounded-full flex items-center justify-center font-bold ${i === 0 ? 'bg-yellow-400 text-white' : i === 1 ? 'bg-slate-300 text-white' : i === 2 ? 'bg-orange-400 text-white' : 'bg-slate-200'}">${i + 1}</div><div><div class="font-bold">${e.name}</div><div class="text-xs text-slate-600">${e.grade}</div></div></div><div class="text-xl font-bold text-orange-600">${e.score}</div></div>`).join('')}</div></div>` : ''}<button onclick="restartGame()" class="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold py-4 px-8 rounded-xl">🔄 Play Again</button></div></div>`;
+        }
+    </script>
+</body>
+</html>
