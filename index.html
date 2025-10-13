@@ -12,38 +12,40 @@
         @keyframes scaleIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         .animate-fadeIn { animation: fadeIn 0.3s ease-out; }
         .animate-scaleIn { animation: scaleIn 0.3s ease-out; }
+        .bg-insight-orange { background-color: #FF531B; }
+        .bg-insight-navy { background-color: #182A35; }
+        .bg-insight-grey { background-color: #63779A; }
+        .text-insight-orange { color: #FF531B; }
+        .text-insight-navy { color: #182A35; }
+        .text-insight-grey { color: #63779A; }
+        .border-insight-orange { border-color: #FF531B; }
+        .border-insight-navy { border-color: #182A35; }
+        .border-insight-grey { border-color: #63779A; }
     </style>
 </head>
-<body class="bg-gradient-to-br from-slate-900 via-blue-950 to-slate-800 min-h-screen">
+<body class="bg-gray-50 min-h-screen">
     <div id="app"></div>
 
     <script>
-        // Wait for Firebase to load
         let initAttempts = 0;
         const maxAttempts = 10;
         
         function tryInitialize() {
             initAttempts++;
-            
             if (typeof firebase !== 'undefined') {
                 initializeFirebase();
             } else if (initAttempts < maxAttempts) {
                 console.log(`Waiting for Firebase... attempt ${initAttempts}`);
                 setTimeout(tryInitialize, 500);
             } else {
-                console.error('Firebase failed to load after multiple attempts');
+                console.error('Firebase failed to load');
                 document.getElementById('app').innerHTML = `
                     <div class="min-h-screen flex items-center justify-center p-4">
-                        <div class="bg-white rounded-2xl p-8 max-w-md text-center">
+                        <div class="bg-white rounded-2xl p-8 max-w-md text-center shadow-xl">
                             <div class="text-6xl mb-4">⚠️</div>
                             <h2 class="text-2xl font-bold text-red-600 mb-4">Connection Error</h2>
-                            <p class="text-slate-700 mb-4">Could not connect to the game server. Please:</p>
-                            <ul class="text-left text-slate-600 mb-6 space-y-2">
-                                <li>• Check your internet connection</li>
-                                <li>• Refresh the page</li>
-                                <li>• Try a different browser</li>
-                            </ul>
-                            <button onclick="location.reload()" class="bg-blue-500 text-white px-6 py-3 rounded-lg font-bold">
+                            <p class="text-gray-700 mb-4">Could not connect to the game server.</p>
+                            <button onclick="location.reload()" class="bg-insight-orange text-white px-6 py-3 rounded-lg font-bold hover:opacity-90">
                                 Refresh Page
                             </button>
                         </div>
@@ -54,7 +56,6 @@
 
         function initializeFirebase() {
             try {
-                // Firebase Configuration
                 const firebaseConfig = {
                     apiKey: "AIzaSyA0ybiOhMHIzWf3nrGDh0mm03Gz0DBj5ts",
                     authDomain: "the-allocation-game.firebaseapp.com",
@@ -63,27 +64,21 @@
                     messagingSenderId: "879053912869",
                     appId: "1:879053912869:web:69b399718d0e9499d0b8cc"
                 };
-
                 firebase.initializeApp(firebaseConfig);
                 window.db = firebase.firestore();
-                console.log("✅ Firebase initialized successfully!");
-                
-                // Start the app
+                console.log("✅ Firebase initialized!");
                 initializeApp();
             } catch (error) {
-                console.error("Firebase initialization error:", error);
-                alert('⚠️ Could not connect to Firebase. Please refresh the page.');
+                console.error("Firebase error:", error);
             }
         }
 
-        // Start initialization on page load
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', tryInitialize);
         } else {
             tryInitialize();
         }
 
-        // Game State
         let gameState = {
             screen: 'intro',
             round: 0,
@@ -99,7 +94,6 @@
             metrics: { arr: 50, ebitdaMargin: 50, nrr: 50, multipleExpansion: 50 }
         };
 
-        // Scenarios Data
         const scenarios = [
             {
                 title: "Rule of 40 Optimization",
@@ -179,9 +173,8 @@
                 const snapshot = await window.db.collection('competitions').doc(gameState.competitionId).collection('scores').orderBy('score', 'desc').limit(100).get();
                 gameState.leaderboard = [];
                 snapshot.forEach(doc => gameState.leaderboard.push({ id: doc.id, ...doc.data() }));
-                console.log(`✅ Loaded ${gameState.leaderboard.length} scores`);
             } catch (error) {
-                console.error('Error loading leaderboard:', error);
+                console.error('Error:', error);
             } finally {
                 gameState.isLoading = false;
                 render();
@@ -195,7 +188,6 @@
                 render();
                 const entry = { name: gameState.playerName.trim(), score: gameState.score, timestamp: Date.now(), grade: getGrade(gameState.score).grade, competitionId: gameState.competitionId };
                 await window.db.collection('competitions').doc(gameState.competitionId).collection('scores').add(entry);
-                console.log("✅ Score saved!");
                 gameState.scoreSaved = true;
                 await loadLeaderboard();
             } catch (error) {
@@ -251,22 +243,22 @@
         }
 
         function renderIntro() {
-            return `<div class="min-h-screen p-4 flex items-center justify-center"><div class="max-w-2xl w-full bg-white rounded-3xl shadow-2xl p-8"><div class="text-center mb-8"><div class="bg-gradient-to-br from-orange-500 to-orange-600 p-4 rounded-2xl inline-block mb-4"><svg class="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div><h1 class="text-4xl font-bold text-slate-900 mb-2">The Allocation Game</h1><p class="text-xl text-slate-600">CFO Summit 2025</p></div><div class="bg-orange-50 rounded-2xl p-6 mb-6 border-2 border-orange-200"><h2 class="text-xl font-bold text-slate-900 mb-4">🎯 Live Competition</h2><ul class="space-y-2 text-slate-700"><li>• 6 Real PE Scenarios</li><li>• Expert Feedback</li><li>• Live Leaderboard</li><li>• Compete with 70+ Players</li></ul></div><div class="bg-blue-50 rounded-2xl p-6 mb-6 border-2 border-blue-200"><label class="block text-sm font-bold text-slate-900 mb-2">Competition ID:</label><input type="text" id="competitionId" value="${gameState.competitionId}" class="w-full px-4 py-3 rounded-lg border-2 border-blue-300 focus:border-blue-500 focus:outline-none text-lg font-semibold"/><p class="text-xs text-slate-600 mt-2">📢 All players use same ID</p></div><button onclick="gameState.competitionId = document.getElementById('competitionId').value; gameState.screen = 'playing'; render();" class="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold py-4 px-8 rounded-xl text-lg shadow-xl">🚀 Start Challenge</button></div></div>`;
+            return `<div class="min-h-screen p-4 flex items-center justify-center bg-white"><div class="max-w-2xl w-full bg-white rounded-3xl shadow-2xl p-8 border-2 border-gray-200"><div class="text-center mb-8"><div class="bg-insight-orange p-4 rounded-2xl inline-block mb-4"><svg class="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div><h1 class="text-4xl font-bold text-insight-navy mb-2">The Allocation Game</h1><p class="text-xl text-insight-grey">CFO Summit 2025</p></div><div class="bg-orange-50 rounded-2xl p-6 mb-6 border-2 border-insight-orange"><h2 class="text-xl font-bold text-insight-navy mb-4">🎯 Live Competition</h2><ul class="space-y-2 text-gray-700"><li>• 6 Real PE Scenarios</li><li>• Expert Feedback</li><li>• Live Leaderboard</li><li>• Compete with 70+ Players</li></ul></div><div class="bg-blue-50 rounded-2xl p-6 mb-6 border-2 border-insight-navy"><label class="block text-sm font-bold text-insight-navy mb-2">Competition ID:</label><input type="text" id="competitionId" value="${gameState.competitionId}" class="w-full px-4 py-3 rounded-lg border-2 border-insight-grey focus:border-insight-orange focus:outline-none text-lg font-semibold"/><p class="text-xs text-gray-600 mt-2">📢 All players use same ID</p></div><button onclick="gameState.competitionId = document.getElementById('competitionId').value; gameState.screen = 'playing'; render();" class="w-full bg-insight-orange hover:opacity-90 text-white font-bold py-4 px-8 rounded-xl text-lg shadow-xl transition-all">🚀 Start Challenge</button></div></div>`;
         }
 
         function renderGame() {
             const s = scenarios[gameState.round];
-            return `<div class="min-h-screen p-4"><div class="max-w-4xl mx-auto py-8"><div class="bg-white rounded-3xl shadow-2xl p-8 mb-6"><h2 class="text-3xl font-bold text-slate-900 mb-2">Scenario ${gameState.round + 1} of 6</h2><p class="text-orange-600 font-bold text-xl mb-4">${gameState.score} points</p><div class="w-full bg-slate-100 rounded-full h-4"><div class="bg-gradient-to-r from-orange-500 to-blue-900 h-4 rounded-full" style="width: ${((gameState.round + 1) / 6) * 100}%"></div></div></div><div class="bg-white rounded-3xl shadow-2xl p-8"><h1 class="text-3xl font-bold text-slate-900 mb-4">${s.title}</h1><p class="text-xl text-slate-700 mb-8">${s.situation}</p><div class="space-y-4">${s.choices.map((c, i) => `<button onclick="handleChoice(${i})" ${gameState.selectedChoice !== null ? 'disabled' : ''} class="w-full text-left p-6 rounded-2xl border-2 ${gameState.selectedChoice === i ? 'bg-orange-50 border-orange-500' : gameState.selectedChoice !== null ? 'bg-slate-50 border-slate-200 opacity-50' : 'bg-white border-slate-200 hover:border-orange-400'}"><div class="flex gap-4"><div class="w-8 h-8 rounded-full border-2 flex items-center justify-center ${gameState.selectedChoice === i ? 'border-orange-500 bg-orange-500' : 'border-slate-300'}">${gameState.selectedChoice === i ? '<div class="w-4 h-4 bg-white rounded-full"></div>' : ''}</div><span class="text-slate-900 font-semibold text-lg">${c.text}</span></div></button>`).join('')}</div></div></div></div>`;
+            return `<div class="min-h-screen p-4 bg-gray-50"><div class="max-w-4xl mx-auto py-8"><div class="bg-white rounded-3xl shadow-xl p-8 mb-6 border border-gray-200"><h2 class="text-3xl font-bold text-insight-navy mb-2">Scenario ${gameState.round + 1} of 6</h2><p class="text-insight-orange font-bold text-xl mb-4">${gameState.score} points</p><div class="w-full bg-gray-200 rounded-full h-4"><div class="bg-gradient-to-r from-insight-orange to-insight-navy h-4 rounded-full transition-all" style="width: ${((gameState.round + 1) / 6) * 100}%"></div></div></div><div class="bg-white rounded-3xl shadow-xl p-8 border border-gray-200"><h1 class="text-3xl font-bold text-insight-navy mb-4">${s.title}</h1><p class="text-xl text-gray-700 mb-8">${s.situation}</p><div class="space-y-4">${s.choices.map((c, i) => `<button onclick="handleChoice(${i})" ${gameState.selectedChoice !== null ? 'disabled' : ''} class="w-full text-left p-6 rounded-2xl border-2 transition-all ${gameState.selectedChoice === i ? 'bg-orange-50 border-insight-orange shadow-lg' : gameState.selectedChoice !== null ? 'bg-gray-50 border-gray-200 opacity-50' : 'bg-white border-gray-300 hover:border-insight-orange hover:shadow-md'}"><div class="flex gap-4"><div class="w-8 h-8 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${gameState.selectedChoice === i ? 'border-insight-orange bg-insight-orange' : 'border-gray-300'}">${gameState.selectedChoice === i ? '<div class="w-4 h-4 bg-white rounded-full"></div>' : ''}</div><span class="text-insight-navy font-semibold text-lg">${c.text}</span></div></button>`).join('')}</div></div></div></div>`;
         }
 
         function renderExpertAnalysis() {
             const c = scenarios[gameState.round].choices[gameState.selectedChoice];
-            return `<div class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"><div class="bg-white rounded-2xl p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto"><button onclick="closeExpertAnalysis()" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-5 px-8 rounded-xl text-xl mb-6">⬇️ Continue ⬇️</button><div class="grid md:grid-cols-2 gap-6"><div><div class="text-center mb-6"><h2 class="text-2xl font-bold">Expert Analysis</h2></div><div class="bg-orange-50 rounded-xl p-6 mb-6 border-2 border-orange-200"><p class="font-bold text-slate-900 mb-3">${c.text}</p><p class="text-slate-700">${c.feedback}</p></div><div class="text-center"><span class="text-3xl font-bold text-orange-600">+${c.points} Points</span></div></div><div class="bg-blue-50 rounded-xl p-6"><h3 class="font-bold mb-4">Impact:</h3><div class="space-y-3"><div class="bg-white p-3 rounded-lg"><div class="text-xs text-slate-600">ARR Growth</div><div class="text-lg font-bold">${c.impact.arr > 0 ? '+' : ''}${c.impact.arr}%</div></div><div class="bg-white p-3 rounded-lg"><div class="text-xs text-slate-600">EBITDA</div><div class="text-lg font-bold">${c.impact.ebitdaMargin > 0 ? '+' : ''}${c.impact.ebitdaMargin}%</div></div><div class="bg-white p-3 rounded-lg"><div class="text-xs text-slate-600">NRR</div><div class="text-lg font-bold">${c.impact.nrr > 0 ? '+' : ''}${c.impact.nrr}%</div></div><div class="bg-white p-3 rounded-lg"><div class="text-xs text-slate-600">Multiple</div><div class="text-lg font-bold">${c.impact.multipleExpansion > 0 ? '+' : ''}${c.impact.multipleExpansion}%</div></div></div></div></div></div></div>`;
+            return `<div class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 animate-fadeIn"><div class="bg-white rounded-2xl p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl animate-scaleIn"><button onclick="closeExpertAnalysis()" class="w-full bg-insight-orange hover:opacity-90 text-white font-bold py-5 px-8 rounded-xl text-xl mb-6 transition-all">⬇️ Continue to Next Scenario ⬇️</button><div class="grid md:grid-cols-2 gap-6"><div><div class="text-center mb-6"><h2 class="text-2xl font-bold text-insight-navy">Expert Analysis</h2></div><div class="bg-orange-50 rounded-xl p-6 mb-6 border-2 border-insight-orange"><p class="font-bold text-insight-navy mb-3">${c.text}</p><p class="text-gray-700">${c.feedback}</p></div><div class="text-center"><span class="text-3xl font-bold text-insight-orange">+${c.points} Points</span></div></div><div class="bg-blue-50 rounded-xl p-6 border-2 border-insight-navy"><h3 class="font-bold text-insight-navy mb-4 text-lg">Portfolio Impact</h3><div class="space-y-3"><div class="bg-white p-4 rounded-lg border border-gray-200"><div class="text-xs text-insight-grey font-semibold">ARR Growth</div><div class="text-lg font-bold text-insight-navy">${c.impact.arr > 0 ? '+' : ''}${c.impact.arr}%</div></div><div class="bg-white p-4 rounded-lg border border-gray-200"><div class="text-xs text-insight-grey font-semibold">EBITDA Margin</div><div class="text-lg font-bold text-insight-navy">${c.impact.ebitdaMargin > 0 ? '+' : ''}${c.impact.ebitdaMargin}%</div></div><div class="bg-white p-4 rounded-lg border border-gray-200"><div class="text-xs text-insight-grey font-semibold">NRR</div><div class="text-lg font-bold text-insight-navy">${c.impact.nrr > 0 ? '+' : ''}${c.impact.nrr}%</div></div><div class="bg-white p-4 rounded-lg border border-gray-200"><div class="text-xs text-insight-grey font-semibold">Multiple Expansion</div><div class="text-lg font-bold text-insight-navy">${c.impact.multipleExpansion > 0 ? '+' : ''}${c.impact.multipleExpansion}%</div></div></div></div></div></div></div>`;
         }
 
         function renderResults() {
             const r = getGrade(gameState.score);
-            return `<div class="min-h-screen p-4 flex items-center justify-center"><div class="max-w-2xl w-full bg-white rounded-3xl shadow-2xl p-8 max-h-[90vh] overflow-y-auto"><div class="text-center mb-8"><h1 class="text-4xl font-bold mb-2">Complete!</h1><div class="text-6xl font-bold mb-2 ${r.color}">${r.grade}</div><p class="text-2xl font-semibold mb-4">${r.title}</p><div class="inline-flex gap-2 px-6 py-3 bg-orange-100 rounded-xl"><span class="text-3xl font-bold text-orange-600">${gameState.score} / 210</span></div></div>${!gameState.scoreSaved ? `<div class="bg-slate-50 rounded-2xl p-6 mb-6"><h2 class="text-xl font-bold mb-4">💾 Save Score</h2><div class="flex gap-3"><input type="text" id="playerName" placeholder="Your name..." class="flex-1 px-4 py-3 rounded-lg border-2 focus:border-orange-500 focus:outline-none" maxlength="30"/><button onclick="gameState.playerName = document.getElementById('playerName').value; saveScore();" class="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-lg">${gameState.isLoading ? '⏳' : '💾'} Save</button></div></div>` : '<div class="bg-green-50 rounded-2xl p-6 mb-6 text-center"><div class="text-4xl mb-2">🎉</div><h2 class="text-xl font-bold text-green-700">Saved!</h2></div>'}<button onclick="gameState.showLeaderboard = !gameState.showLeaderboard; if(gameState.showLeaderboard) loadLeaderboard(); render();" class="w-full bg-blue-900 hover:bg-blue-800 text-white font-bold py-4 px-8 rounded-xl mb-4">🏆 ${gameState.showLeaderboard ? 'Hide' : 'View'} Leaderboard</button>${gameState.showLeaderboard && gameState.leaderboard.length > 0 ? `<div class="bg-slate-50 rounded-2xl p-6 mb-6"><h2 class="text-xl font-bold mb-4">Top Players</h2><div class="space-y-2 max-h-96 overflow-y-auto">${gameState.leaderboard.slice(0, 50).map((e, i) => `<div class="flex justify-between p-3 rounded-lg ${i < 3 ? 'bg-orange-100' : 'bg-white'}"><div class="flex gap-3"><div class="w-8 h-8 rounded-full flex items-center justify-center font-bold ${i === 0 ? 'bg-yellow-400 text-white' : i === 1 ? 'bg-slate-300 text-white' : i === 2 ? 'bg-orange-400 text-white' : 'bg-slate-200'}">${i + 1}</div><div><div class="font-bold">${e.name}</div><div class="text-xs text-slate-600">${e.grade}</div></div></div><div class="text-xl font-bold text-orange-600">${e.score}</div></div>`).join('')}</div></div>` : ''}<button onclick="restartGame()" class="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold py-4 px-8 rounded-xl">🔄 Play Again</button></div></div>`;
+            return `<div class="min-h-screen p-4 flex items-center justify-center bg-gray-50"><div class="max-w-2xl w-full bg-white rounded-3xl shadow-2xl p-8 max-h-[90vh] overflow-y-auto border border-gray-200"><div class="text-center mb-8"><h1 class="text-4xl font-bold text-insight-navy mb-2">Portfolio Complete!</h1><div class="text-6xl font-bold mb-2 ${r.color}">${r.grade}</div><p class="text-2xl font-semibold text-insight-navy mb-4">${r.title}</p><div class="inline-flex gap-2 px-6 py-3 bg-orange-100 rounded-xl border-2 border-insight-orange"><span class="text-3xl font-bold text-insight-orange">${gameState.score} / 210</span></div></div>${!gameState.scoreSaved ? `<div class="bg-gray-50 rounded-2xl p-6 mb-6 border border-gray-200"><h2 class="text-xl font-bold text-insight-navy mb-4">💾 Save Your Score</h2><div class="flex gap-3"><input type="text" id="playerName" placeholder="Enter your name..." class="flex-1 px-4 py-3 rounded-lg border-2 border-insight-grey focus:border-insight-orange focus:outline-none" maxlength="30"/><button onclick="gameState.playerName = document.getElementById('playerName').value; saveScore();" class="px-6 py-3 bg-insight-orange hover:opacity-90 text-white font-bold rounded-lg transition-all">${gameState.isLoading ? '⏳' : '💾'} Save</button></div></div>` : '<div class="bg-green-50 rounded-2xl p-6 mb-6 text-center border-2 border-green-300"><div class="text-4xl mb-2">🎉</div><h2 class="text-xl font-bold text-green-700">Score Saved!</h2></div>'}<button onclick="gameState.showLeaderboard = !gameState.showLeaderboard; if(gameState.showLeaderboard) loadLeaderboard(); render();" class="w-full bg-insight-navy hover:opacity-90 text-white font-bold py-4 px-8 rounded-xl mb-4 transition-all">🏆 ${gameState.showLeaderboard ? 'Hide' : 'View'} Leaderboard</button>${gameState.showLeaderboard && gameState.leaderboard.length > 0 ? `<div class="bg-gray-50 rounded-2xl p-6 mb-6 border border-gray-200"><h2 class="text-xl font-bold text-insight-navy mb-4">🏆 Top Performers</h2><div class="space-y-2 max-h-96 overflow-y-auto">${gameState.leaderboard.slice(0, 50).map((e, i) => `<div class="flex justify-between items-center p-4 rounded-lg ${i < 3 ? 'bg-orange-50 border-2 border-insight-orange' : 'bg-white border border-gray-200'}"><div class="flex gap-3 items-center"><div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white ${i === 0 ? 'bg-insight-orange' : i === 1 ? 'bg-insight-grey' : i === 2 ? 'bg-insight-navy' : 'bg-gray-400'}">${i + 1}</div><div><div class="font-bold text-insight-navy">${e.name}</div><div class="text-xs text-insight-grey">${e.grade}</div></div></div><div class="text-xl font-bold text-insight-orange">${e.score}</div></div>`).join('')}</div></div>` : ''}<button onclick="restartGame()" class="w-full bg-insight-orange hover:opacity-90 text-white font-bold py-4 px-8 rounded-xl transition-all">🔄 Play Again</button></div></div>`;
         }
     </script>
 </body>
