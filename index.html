@@ -94,7 +94,9 @@
             metrics: { arr: 50, ebitdaMargin: 50, nrr: 50, multipleExpansion: 50 },
             adminPassword: '',
             isAdmin: false,
-            showAdminLogin: false
+            showAdminLogin: false,
+            playerChoices: [],
+            viewingPlayerDetails: null
         };
 
         // Admin password - CHANGE THIS!
@@ -192,7 +194,14 @@
             try {
                 gameState.isLoading = true;
                 render();
-                const entry = { name: gameState.playerName.trim(), score: gameState.score, timestamp: Date.now(), grade: getGrade(gameState.score).grade, competitionId: gameState.competitionId };
+                const entry = { 
+                    name: gameState.playerName.trim(), 
+                    score: gameState.score, 
+                    timestamp: Date.now(), 
+                    grade: getGrade(gameState.score).grade, 
+                    competitionId: gameState.competitionId,
+                    choices: gameState.playerChoices
+                };
                 await window.db.collection('competitions').doc(gameState.competitionId).collection('scores').add(entry);
                 gameState.scoreSaved = true;
                 await loadLeaderboard();
@@ -256,6 +265,13 @@
 
         function handleChoice(index) {
             gameState.selectedChoice = index;
+            gameState.playerChoices.push({
+                scenario: gameState.round,
+                choice: index,
+                scenarioTitle: scenarios[gameState.round].title,
+                choiceText: scenarios[gameState.round].choices[index].text,
+                points: scenarios[gameState.round].choices[index].points
+            });
             setTimeout(() => { gameState.showExpertAnalysis = true; render(); }, 500);
         }
 
@@ -278,7 +294,7 @@
         }
 
         function restartGame() {
-            gameState = { screen: 'intro', round: 0, score: 0, selectedChoice: null, showExpertAnalysis: false, leaderboard: [], showLeaderboard: false, playerName: '', scoreSaved: false, competitionId: 'cfo-summit-2025', isLoading: false, metrics: { arr: 50, ebitdaMargin: 50, nrr: 50, multipleExpansion: 50 }, adminPassword: '', isAdmin: false, showAdminLogin: false };
+            gameState = { screen: 'intro', round: 0, score: 0, selectedChoice: null, showExpertAnalysis: false, leaderboard: [], showLeaderboard: false, playerName: '', scoreSaved: false, competitionId: 'cfo-summit-2025', isLoading: false, metrics: { arr: 50, ebitdaMargin: 50, nrr: 50, multipleExpansion: 50 }, adminPassword: '', isAdmin: false, showAdminLogin: false, playerChoices: [], viewingPlayerDetails: null };
             render();
         }
 
@@ -300,7 +316,19 @@
         }
 
         function renderIntro() {
-            return `<div class="min-h-screen p-3 flex items-center justify-center bg-gradient-to-b from-white to-gray-50"><div class="max-w-xl w-full bg-white rounded-2xl shadow-lg p-5 relative"><button onclick="gameState.showAdminLogin = true; render();" class="absolute top-3 right-3 w-8 h-8 flex items-center justify-center text-gray-300 hover:text-gray-500 transition-all text-xs opacity-30 hover:opacity-100" title="Admin">🔒</button><div class="text-center mb-5"><div class="bg-insight-orange p-3 rounded-xl inline-block mb-3"><svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div><h1 class="text-2xl font-bold text-insight-navy mb-1">The Allocation Game</h1><p class="text-base text-insight-grey">CFO Summit 2025</p></div><div class="bg-blue-50 rounded-xl p-3 mb-4"><label class="block text-xs font-semibold text-insight-navy mb-2">Competition ID:</label><input type="text" id="competitionId" value="${gameState.competitionId}" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-insight-orange focus:ring-2 focus:ring-insight-orange focus:ring-opacity-20 focus:outline-none text-sm font-medium"/><p class="text-xs text-gray-500 mt-2">📢 All players use same ID</p></div><button onclick="gameState.competitionId = document.getElementById('competitionId').value; gameState.screen = 'playing'; render();" class="w-full bg-insight-orange hover:opacity-90 text-white font-semibold py-2.5 px-5 rounded-xl text-sm shadow-sm transition-all">🚀 Start Challenge</button></div></div>`;
+            return `<div class="min-h-screen p-3 flex items-center justify-center bg-gradient-to-b from-white to-gray-50"><div class="max-w-xl w-full bg-white rounded-2xl shadow-lg p-5"><div class="text-center mb-5"><div class="bg-insight-orange p-3 rounded-xl inline-block mb-3"><svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div><h1 class="text-2xl font-bold text-insight-navy mb-1">The Allocation Game</h1><p class="text-base text-insight-grey">CFO Summit 2025</p></div><div class="bg-blue-50 rounded-xl p-3 mb-4"><label class="block text-xs font-semibold text-insight-navy mb-2">Competition ID:</label><input type="text" id="competitionId" value="${gameState.competitionId}" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-insight-orange focus:ring-2 focus:ring-insight-orange focus:ring-opacity-20 focus:outline-none text-sm font-medium"/><p class="text-xs text-gray-500 mt-2">📢 All players use same ID</p></div><button onclick="gameState.competitionId = document.getElementById('competitionId').value; gameState.screen = 'playing'; render();" class="w-full bg-insight-orange hover:opacity-90 text-white font-semibold py-2.5 px-5 rounded-xl text-sm shadow-sm transition-all mb-4">🚀 Start Challenge</button><div class="border-t border-gray-200 pt-4"><div class="bg-gray-50 rounded-xl p-3"><label class="block text-xs font-semibold text-insight-navy mb-2">🔒 Admin Access</label><div class="flex gap-2"><input type="password" id="adminPasscodeInput" placeholder="Enter passcode..." class="flex-1 px-3 py-2 rounded-lg border border-gray-200 focus:border-insight-orange focus:ring-2 focus:ring-insight-orange focus:ring-opacity-20 focus:outline-none text-sm" onkeypress="if(event.key === 'Enter') checkAdminFromIntro()"/><button onclick="checkAdminFromIntro()" class="px-4 py-2 bg-insight-navy hover:opacity-90 text-white font-semibold rounded-lg transition-all text-sm">Enter</button></div></div></div></div></div>`;
+        }
+
+        function checkAdminFromIntro() {
+            const password = document.getElementById('adminPasscodeInput').value;
+            if (password === ADMIN_PASSWORD) {
+                gameState.isAdmin = true;
+                gameState.screen = 'admin';
+                loadLeaderboard();
+                render();
+            } else {
+                alert('❌ Incorrect passcode');
+            }
         }
 
         function renderGame() {
@@ -323,7 +351,20 @@
         }
 
         function renderAdmin() {
-            return `<div class="min-h-screen p-3 bg-gradient-to-b from-white to-gray-50"><div class="max-w-4xl mx-auto py-3"><div class="bg-white rounded-2xl shadow-lg p-5 mb-3"><div class="flex justify-between items-center mb-4"><h1 class="text-xl font-bold text-insight-navy">🔧 Admin Console</h1><div class="flex gap-2"><button onclick="gameState.screen = 'intro'; render();" class="px-3 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 font-semibold rounded-lg transition-all text-xs">← Intro</button><button onclick="gameState.screen = 'intro'; gameState.isAdmin = false; render();" class="px-3 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg transition-all text-xs">Logout</button></div></div><div class="bg-orange-50 rounded-xl p-3 mb-3"><p class="text-insight-navy text-xs"><strong>Competition:</strong> ${gameState.competitionId}</p><p class="text-insight-grey text-xs mt-1">Total: ${gameState.leaderboard.length} entries</p></div><div class="flex gap-2 mb-3"><button onclick="loadLeaderboard()" class="px-3 py-2 bg-insight-navy hover:opacity-90 text-white font-semibold rounded-lg transition-all text-xs">${gameState.isLoading ? '⏳' : '🔄'} Refresh</button><button onclick="clearAllScores()" class="px-3 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-all text-xs">🗑️ Clear All</button></div>${gameState.leaderboard.length > 0 ? `<div class="bg-gray-50 rounded-xl p-3"><h2 class="text-base font-semibold text-insight-navy mb-2">📊 All Entries (${gameState.leaderboard.length})</h2><div class="space-y-1.5 max-h-[70vh] overflow-y-auto">${gameState.leaderboard.map((e, i) => `<div class="flex justify-between items-center p-2.5 rounded-lg bg-white shadow-sm"><div class="flex gap-2 items-center flex-1 min-w-0"><div class="w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs flex-shrink-0 ${i < 3 ? 'bg-insight-orange text-white' : 'bg-gray-200 text-gray-600'}">${i + 1}</div><div class="flex-1 min-w-0 mr-2"><div class="font-semibold text-insight-navy text-xs truncate">${e.name}</div><div class="text-xs text-insight-grey">${e.grade} • ${new Date(e.timestamp).toLocaleDateString('en-US', {month: 'short', day: 'numeric'})} ${new Date(e.timestamp).toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit'})}</div></div><div class="text-base font-bold text-insight-orange mr-2 flex-shrink-0">${e.score}</div><button onclick="deleteScore('${e.id}')" class="px-2 py-1 bg-red-100 hover:bg-red-200 text-red-600 font-semibold rounded text-xs flex-shrink-0">Del</button></div></div>`).join('')}</div></div>` : '<div class="text-center py-8 text-gray-400"><p class="text-sm">No entries yet</p></div>'}</div></div></div>`;
+            if (gameState.viewingPlayerDetails) {
+                return renderPlayerDetails();
+            }
+            return `<div class="min-h-screen p-3 bg-gradient-to-b from-white to-gray-50"><div class="max-w-4xl mx-auto py-3"><div class="bg-white rounded-2xl shadow-lg p-5 mb-3"><div class="flex justify-between items-center mb-4"><h1 class="text-xl font-bold text-insight-navy">🔧 Admin Console</h1><div class="flex gap-2"><button onclick="gameState.screen = 'intro'; render();" class="px-3 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 font-semibold rounded-lg transition-all text-xs">← Intro</button><button onclick="gameState.screen = 'intro'; gameState.isAdmin = false; render();" class="px-3 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg transition-all text-xs">Logout</button></div></div><div class="bg-orange-50 rounded-xl p-3 mb-3"><p class="text-insight-navy text-xs"><strong>Competition:</strong> ${gameState.competitionId}</p><p class="text-insight-grey text-xs mt-1">Total: ${gameState.leaderboard.length} entries</p></div><div class="flex gap-2 mb-3"><button onclick="loadLeaderboard()" class="px-3 py-2 bg-insight-navy hover:opacity-90 text-white font-semibold rounded-lg transition-all text-xs">${gameState.isLoading ? '⏳' : '🔄'} Refresh</button><button onclick="clearAllScores()" class="px-3 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-all text-xs">🗑️ Clear All</button></div>${gameState.leaderboard.length > 0 ? `<div class="bg-gray-50 rounded-xl p-3"><h2 class="text-base font-semibold text-insight-navy mb-2">📊 All Entries (${gameState.leaderboard.length})</h2><div class="space-y-1.5 max-h-[70vh] overflow-y-auto">${gameState.leaderboard.map((e, i) => `<div class="flex justify-between items-center p-2.5 rounded-lg bg-white shadow-sm"><div class="flex gap-2 items-center flex-1 min-w-0"><div class="w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs flex-shrink-0 ${i < 3 ? 'bg-insight-orange text-white' : 'bg-gray-200 text-gray-600'}">${i + 1}</div><div class="flex-1 min-w-0 mr-2"><div class="font-semibold text-insight-navy text-xs truncate">${e.name}</div><div class="text-xs text-insight-grey">${e.grade} • ${new Date(e.timestamp).toLocaleDateString('en-US', {month: 'short', day: 'numeric'})} ${new Date(e.timestamp).toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit'})}</div></div><div class="text-base font-bold text-insight-orange mr-2 flex-shrink-0">${e.score}</div>${e.choices ? `<button onclick="gameState.viewingPlayerDetails = ${i}; render();" class="px-2 py-1 bg-blue-100 hover:bg-blue-200 text-blue-600 font-semibold rounded text-xs flex-shrink-0 mr-1">View</button>` : ''}<button onclick="deleteScore('${e.id}')" class="px-2 py-1 bg-red-100 hover:bg-red-200 text-red-600 font-semibold rounded text-xs flex-shrink-0">Del</button></div></div>`).join('')}</div></div>` : '<div class="text-center py-8 text-gray-400"><p class="text-sm">No entries yet</p></div>'}</div></div></div>`;
+        }
+
+        function renderPlayerDetails() {
+            const player = gameState.leaderboard[gameState.viewingPlayerDetails];
+            if (!player || !player.choices) {
+                gameState.viewingPlayerDetails = null;
+                render();
+                return '';
+            }
+            return `<div class="min-h-screen p-3 bg-gradient-to-b from-white to-gray-50"><div class="max-w-3xl mx-auto py-3"><div class="bg-white rounded-2xl shadow-lg p-5"><div class="flex justify-between items-center mb-4"><h1 class="text-xl font-bold text-insight-navy">📊 Player Details</h1><button onclick="gameState.viewingPlayerDetails = null; render();" class="px-3 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg transition-all text-xs">← Back</button></div><div class="bg-orange-50 rounded-xl p-4 mb-4"><div class="flex justify-between items-center mb-2"><h2 class="text-lg font-bold text-insight-navy">${player.name}</h2><div class="text-2xl font-bold text-insight-orange">${player.score} pts</div></div><div class="flex gap-4 text-sm text-insight-grey"><span><strong>Grade:</strong> ${player.grade}</span><span><strong>Date:</strong> ${new Date(player.timestamp).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})} ${new Date(player.timestamp).toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit'})}</span></div></div><h3 class="text-base font-semibold text-insight-navy mb-3">Decision Summary</h3><div class="space-y-3">${player.choices.map((choice, idx) => `<div class="bg-gray-50 rounded-xl p-3"><div class="flex justify-between items-start mb-2"><h4 class="font-semibold text-insight-navy text-sm">Scenario ${idx + 1}: ${choice.scenarioTitle}</h4><span class="text-insight-orange font-bold text-sm">+${choice.points} pts</span></div><p class="text-xs text-gray-700 leading-relaxed">${choice.choiceText}</p></div>`).join('')}</div></div></div></div>`;
         }
     </script>
 </body>
