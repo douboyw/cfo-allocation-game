@@ -96,7 +96,10 @@
             isAdmin: false,
             showAdminLogin: false,
             playerChoices: [],
-            viewingPlayerDetails: null
+            viewingPlayerDetails: null,
+            lastRefreshTime: null,
+            autoRefreshInterval: null,
+            clockInterval: null
         };
 
         // Admin password - CHANGE THIS!
@@ -221,6 +224,7 @@
                 const snapshot = await window.db.collection('competitions').doc(gameState.competitionId).collection('scores').orderBy('score', 'desc').limit(100).get();
                 gameState.leaderboard = [];
                 snapshot.forEach(doc => gameState.leaderboard.push({ id: doc.id, ...doc.data() }));
+                gameState.lastRefreshTime = Date.now();
             } catch (error) {
                 console.error('Error:', error);
             } finally {
@@ -261,10 +265,52 @@
                 gameState.showAdminLogin = false;
                 gameState.screen = 'admin';
                 loadLeaderboard();
+                startAutoRefresh();
                 render();
             } else {
                 alert('❌ Incorrect password');
             }
+        }
+
+        function startAutoRefresh() {
+            // Clear any existing interval
+            if (gameState.autoRefreshInterval) {
+                clearInterval(gameState.autoRefreshInterval);
+            }
+            // Refresh every 10 seconds
+            gameState.autoRefreshInterval = setInterval(() => {
+                if (gameState.screen === 'admin' && !gameState.viewingPlayerDetails) {
+                    loadLeaderboard();
+                }
+            }, 10000);
+            
+            // Update UI clock every second for real-time feel
+            if (!gameState.clockInterval) {
+                gameState.clockInterval = setInterval(() => {
+                    if (gameState.screen === 'admin' && !gameState.viewingPlayerDetails) {
+                        render();
+                    }
+                }, 1000);
+            }
+        }
+
+        function stopAutoRefresh() {
+            if (gameState.autoRefreshInterval) {
+                clearInterval(gameState.autoRefreshInterval);
+                gameState.autoRefreshInterval = null;
+            }
+            if (gameState.clockInterval) {
+                clearInterval(gameState.clockInterval);
+                gameState.clockInterval = null;
+            }
+        }
+
+        function getTimeSinceRefresh() {
+            if (!gameState.lastRefreshTime) return '';
+            const seconds = Math.floor((Date.now() - gameState.lastRefreshTime) / 1000);
+            if (seconds < 60) return `${seconds}s ago`;
+            const minutes = Math.floor(seconds / 60);
+            return `${minutes}m ago`;
         }
 
         async function deleteScore(scoreId) {
@@ -334,15 +380,13 @@
         }
 
         function restartGame() {
-            gameState = { screen: 'intro', round: 0, score: 0, selectedChoice: null, showExpertAnalysis: false, leaderboard: [], showLeaderboard: false, playerName: '', scoreSaved: false, competitionId: 'cfo-summit-2025', isLoading: false, metrics: { arr: 50, ebitdaMargin: 50, nrr: 50, multipleExpansion: 50 }, adminPassword: '', isAdmin: false, showAdminLogin: false, playerChoices: [], viewingPlayerDetails: null };
+            stopAutoRefresh();
+            gameState = { screen: 'intro', round: 0, score: 0, selectedChoice: null, showExpertAnalysis: false, leaderboard: [], showLeaderboard: false, playerName: '', scoreSaved: false, competitionId: 'cfo-summit-2025', isLoading: false, metrics: { arr: 50, ebitdaMargin: 50, nrr: 50, multipleExpansion: 50 }, adminPassword: '', isAdmin: false, showAdminLogin: false, playerChoices: [], viewingPlayerDetails: null, lastRefreshTime: null, autoRefreshInterval: null, clockInterval: null };
             render();
         }
 
         function initializeApp() {
             render();
-            setInterval(() => {
-                if (gameState.showLeaderboard && gameState.screen === 'results' && window.db) loadLeaderboard();
-            }, 5000);
         }
 
         function render() {
@@ -365,6 +409,7 @@
                 gameState.isAdmin = true;
                 gameState.screen = 'admin';
                 loadLeaderboard();
+                startAutoRefresh();
                 render();
             } else {
                 alert('❌ Incorrect passcode');
@@ -394,17 +439,19 @@
             if (gameState.viewingPlayerDetails) {
                 return renderPlayerDetails();
             }
-            return `<div class="min-h-screen p-3 bg-gradient-to-b from-white to-gray-50"><div class="max-w-4xl mx-auto py-3"><div class="bg-white rounded-2xl shadow-lg p-5 mb-3"><div class="flex justify-between items-center mb-4"><h1 class="text-xl font-bold text-insight-navy">🔧 Admin Console</h1><div class="flex gap-2"><button onclick="gameState.screen = 'intro'; render();" class="px-3 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 font-semibold rounded-lg transition-all text-xs">← Intro</button><button onclick="gameState.screen = 'intro'; gameState.isAdmin = false; render();" class="px-3 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg transition-all text-xs">Logout</button></div></div><div class="bg-orange-50 rounded-xl p-3 mb-3"><p class="text-insight-navy text-xs"><strong>Competition:</strong> ${gameState.competitionId}</p><p class="text-insight-grey text-xs mt-1">Total: ${gameState.leaderboard.length} entries</p></div><div class="flex gap-2 mb-3"><button onclick="loadLeaderboard()" class="px-3 py-2 bg-insight-navy hover:opacity-90 text-white font-semibold rounded-lg transition-all text-xs">${gameState.isLoading ? '⏳' : '🔄'} Refresh</button><button onclick="clearAllScores()" class="px-3 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-all text-xs">🗑️ Clear All</button></div>${gameState.leaderboard.length > 0 ? `<div class="bg-gray-50 rounded-xl p-3"><h2 class="text-base font-semibold text-insight-navy mb-2">📊 All Entries (${gameState.leaderboard.length})</h2><div class="space-y-1.5 max-h-[70vh] overflow-y-auto">${gameState.leaderboard.map((e, i) => `<div class="flex justify-between items-center p-2.5 rounded-lg bg-white shadow-sm"><div class="flex gap-2 items-center flex-1 min-w-0"><div class="w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs flex-shrink-0 ${i < 3 ? 'bg-insight-orange text-white' : 'bg-gray-200 text-gray-600'}">${i + 1}</div><div class="flex-1 min-w-0 mr-2"><div class="font-semibold text-insight-navy text-xs truncate">${e.name}</div><div class="text-xs text-insight-grey">${e.grade} • ${new Date(e.timestamp).toLocaleDateString('en-US', {month: 'short', day: 'numeric'})} ${new Date(e.timestamp).toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit'})}</div></div><div class="text-base font-bold text-insight-orange mr-2 flex-shrink-0">${e.score}</div>${e.choices ? `<button onclick="gameState.viewingPlayerDetails = ${i}; render();" class="px-2 py-1 bg-blue-100 hover:bg-blue-200 text-blue-600 font-semibold rounded text-xs flex-shrink-0 mr-1">View</button>` : ''}<button onclick="deleteScore('${e.id}')" class="px-2 py-1 bg-red-100 hover:bg-red-200 text-red-600 font-semibold rounded text-xs flex-shrink-0">Del</button></div></div>`).join('')}</div></div>` : '<div class="text-center py-8 text-gray-400"><p class="text-sm">No entries yet</p></div>'}</div></div></div>`;
+            const refreshTime = getTimeSinceRefresh();
+            return `<div class="min-h-screen p-3 bg-gradient-to-b from-white to-gray-50"><div class="max-w-4xl mx-auto py-3"><div class="bg-white rounded-2xl shadow-lg p-5 mb-3"><div class="flex justify-between items-center mb-4"><h1 class="text-xl font-bold text-insight-navy">🔧 Admin Console</h1><div class="flex gap-2"><button onclick="gameState.screen = 'intro'; stopAutoRefresh(); render();" class="px-3 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 font-semibold rounded-lg transition-all text-xs">← Intro</button><button onclick="gameState.screen = 'intro'; gameState.isAdmin = false; stopAutoRefresh(); render();" class="px-3 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg transition-all text-xs">Logout</button></div></div><div class="bg-orange-50 rounded-xl p-3 mb-3"><div class="flex justify-between items-center"><div><p class="text-insight-navy text-xs"><strong>Competition:</strong> ${gameState.competitionId}</p><p class="text-insight-grey text-xs mt-1">Total: ${gameState.leaderboard.length} entries</p></div><div class="text-right"><div class="flex items-center gap-2"><div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div><span class="text-xs text-insight-grey">Live • ${refreshTime}</span></div><p class="text-xs text-insight-grey mt-1">Auto-refresh: 10s</p></div></div></div><div class="flex gap-2 mb-3"><button onclick="loadLeaderboard()" class="px-3 py-2 bg-insight-navy hover:opacity-90 text-white font-semibold rounded-lg transition-all text-xs">${gameState.isLoading ? '⏳' : '🔄'} Refresh Now</button><button onclick="clearAllScores()" class="px-3 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-all text-xs">🗑️ Clear All</button></div>${gameState.leaderboard.length > 0 ? `<div class="bg-gray-50 rounded-xl p-3"><h2 class="text-base font-semibold text-insight-navy mb-2">📊 All Entries (${gameState.leaderboard.length})</h2><div class="space-y-1.5 max-h-[70vh] overflow-y-auto">${gameState.leaderboard.map((e, i) => `<div class="flex justify-between items-center p-2.5 rounded-lg bg-white shadow-sm"><div class="flex gap-2 items-center flex-1 min-w-0"><div class="w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs flex-shrink-0 ${i < 3 ? 'bg-insight-orange text-white' : 'bg-gray-200 text-gray-600'}">${i + 1}</div><div class="flex-1 min-w-0 mr-2"><div class="font-semibold text-insight-navy text-xs truncate">${e.name}</div><div class="text-xs text-insight-grey">${e.grade} • ${new Date(e.timestamp).toLocaleDateString('en-US', {month: 'short', day: 'numeric'})} ${new Date(e.timestamp).toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit'})}</div></div><div class="text-base font-bold text-insight-orange mr-2 flex-shrink-0">${e.score}</div>${e.choices ? `<button onclick="gameState.viewingPlayerDetails = ${i}; stopAutoRefresh(); render();" class="px-2 py-1 bg-blue-100 hover:bg-blue-200 text-blue-600 font-semibold rounded text-xs flex-shrink-0 mr-1">View</button>` : ''}<button onclick="deleteScore('${e.id}')" class="px-2 py-1 bg-red-100 hover:bg-red-200 text-red-600 font-semibold rounded text-xs flex-shrink-0">Del</button></div></div>`).join('')}</div></div>` : '<div class="text-center py-8 text-gray-400"><p class="text-sm">No entries yet</p></div>'}</div></div></div>`;
         }
 
         function renderPlayerDetails() {
             const player = gameState.leaderboard[gameState.viewingPlayerDetails];
             if (!player || !player.choices) {
                 gameState.viewingPlayerDetails = null;
+                startAutoRefresh();
                 render();
                 return '';
             }
-            return `<div class="min-h-screen p-3 bg-gradient-to-b from-white to-gray-50"><div class="max-w-3xl mx-auto py-3"><div class="bg-white rounded-2xl shadow-lg p-5"><div class="flex justify-between items-center mb-4"><h1 class="text-xl font-bold text-insight-navy">📊 Player Details</h1><button onclick="gameState.viewingPlayerDetails = null; render();" class="px-3 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg transition-all text-xs">← Back</button></div><div class="bg-orange-50 rounded-xl p-4 mb-4"><div class="flex justify-between items-center mb-2"><h2 class="text-lg font-bold text-insight-navy">${player.name}</h2><div class="text-2xl font-bold text-insight-orange">${player.score} pts</div></div><div class="flex gap-4 text-sm text-insight-grey"><span><strong>Grade:</strong> ${player.grade}</span><span><strong>Date:</strong> ${new Date(player.timestamp).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})} ${new Date(player.timestamp).toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit'})}</span></div></div><h3 class="text-base font-semibold text-insight-navy mb-3">Decision Summary</h3><div class="space-y-3">${player.choices.map((choice, idx) => `<div class="bg-gray-50 rounded-xl p-3"><div class="flex justify-between items-start mb-2"><h4 class="font-semibold text-insight-navy text-sm">Scenario ${idx + 1}: ${choice.scenarioTitle}</h4><span class="text-insight-orange font-bold text-sm">+${choice.points} pts</span></div><p class="text-xs text-gray-700 leading-relaxed">${choice.choiceText}</p></div>`).join('')}</div></div></div></div>`;
+            return `<div class="min-h-screen p-3 bg-gradient-to-b from-white to-gray-50"><div class="max-w-3xl mx-auto py-3"><div class="bg-white rounded-2xl shadow-lg p-5"><div class="flex justify-between items-center mb-4"><h1 class="text-xl font-bold text-insight-navy">📊 Player Details</h1><button onclick="gameState.viewingPlayerDetails = null; startAutoRefresh(); render();" class="px-3 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg transition-all text-xs">← Back</button></div><div class="bg-orange-50 rounded-xl p-4 mb-4"><div class="flex justify-between items-center mb-2"><h2 class="text-lg font-bold text-insight-navy">${player.name}</h2><div class="text-2xl font-bold text-insight-orange">${player.score} pts</div></div><div class="flex gap-4 text-sm text-insight-grey"><span><strong>Grade:</strong> ${player.grade}</span><span><strong>Date:</strong> ${new Date(player.timestamp).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})} ${new Date(player.timestamp).toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit'})}</span></div></div><h3 class="text-base font-semibold text-insight-navy mb-3">Decision Summary</h3><div class="space-y-3">${player.choices.map((choice, idx) => `<div class="bg-gray-50 rounded-xl p-3"><div class="flex justify-between items-start mb-2"><h4 class="font-semibold text-insight-navy text-sm">Scenario ${idx + 1}: ${choice.scenarioTitle}</h4><span class="text-insight-orange font-bold text-sm">+${choice.points} pts</span></div><p class="text-xs text-gray-700 leading-relaxed">${choice.choiceText}</p></div>`).join('')}</div></div></div></div>`;
         }
     </script>
 </body>
