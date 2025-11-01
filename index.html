@@ -2,18 +2,40 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <title>The Allocation Game - CFO Summit 2025</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <style>
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+            overflow-x: hidden;
+        }
+        
+        body {
+            -webkit-overflow-scrolling: touch;
+            overflow-x: hidden;
+            position: relative;
+            width: 100%;
+        }
+        
+        #app {
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+        }
+        
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes scaleIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
         .animate-fadeIn { animation: fadeIn 0.3s ease-out; }
         .animate-scaleIn { animation: scaleIn 0.3s ease-out; }
-        .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
         .bg-insight-orange { background-color: #FF531B; }
         .bg-insight-navy { background-color: #182A35; }
         .bg-insight-grey { background-color: #63779A; }
@@ -23,6 +45,22 @@
         .border-insight-orange { border-color: #FF531B; }
         .border-insight-navy { border-color: #182A35; }
         .border-insight-grey { border-color: #63779A; }
+        
+        /* Mobile-specific fixes */
+        button {
+            touch-action: manipulation;
+        }
+        
+        input {
+            font-size: 16px; /* Prevents zoom on iOS */
+        }
+        
+        /* Smooth scrolling container */
+        .scroll-container {
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+        }
     </style>
 </head>
 <body class="bg-white min-h-screen">
@@ -38,6 +76,14 @@
     <script>
         console.log("Script starting...");
         
+        // Scroll to top helper function
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'instant' });
+            // Also scroll the body element
+            document.documentElement.scrollTop = 0;
+            document.body.scrollTop = 0;
+        }
+        
         let initAttempts = 0;
         const maxAttempts = 10;
         
@@ -50,19 +96,33 @@
                 setTimeout(tryInitialize, 500);
             } else {
                 console.error('Firebase failed to load');
-                document.getElementById('app').innerHTML = `
-                    <div class="min-h-screen flex items-center justify-center p-4">
-                        <div class="bg-white rounded-2xl p-8 max-w-md text-center">
-                            <div class="text-6xl mb-4">⚠️</div>
-                            <h2 class="text-2xl font-bold text-red-600 mb-4">Connection Error</h2>
-                            <p class="text-gray-600 mb-4">Could not connect to the game server.</p>
-                            <button onclick="location.reload()" class="bg-insight-orange text-white px-6 py-3 rounded-lg font-semibold hover:opacity-90">
-                                Refresh Page
-                            </button>
-                        </div>
-                    </div>
-                `;
+                showError('Connection Error', 'Could not connect to the game server.');
             }
+        }
+
+        function showError(title, message) {
+            document.getElementById('app').innerHTML = `
+                <div class="min-h-screen flex items-center justify-center p-4">
+                    <div class="bg-white rounded-2xl p-8 max-w-md text-center">
+                        <div class="text-6xl mb-4">⚠️</div>
+                        <h2 class="text-2xl font-bold text-red-600 mb-4">${escapeHtml(title)}</h2>
+                        <p class="text-gray-600 mb-4">${escapeHtml(message)}</p>
+                        <button onclick="location.reload()" class="bg-insight-orange text-white px-6 py-3 rounded-lg font-semibold hover:opacity-90">
+                            Refresh Page
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function escapeHtml(unsafe) {
+            if (typeof unsafe !== 'string') return '';
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
         }
 
         function initializeFirebase() {
@@ -81,6 +141,7 @@
                 initializeApp();
             } catch (error) {
                 console.error("Firebase error:", error);
+                showError('Firebase Error', 'Failed to initialize database connection.');
             }
         }
 
@@ -101,9 +162,8 @@
             playerName: '',
             playerEmail: '',
             scoreSaved: false,
-            competitionId: 'cfo-summit-2025',
+            competitionId: 'cfo-summit-2025-TEST',
             isLoading: false,
-            isSaving: false,
             metrics: { arr: 50, ebitdaMargin: 50, nrr: 50, multipleExpansion: 50 },
             adminPassword: '',
             isAdmin: false,
@@ -112,15 +172,10 @@
             viewingPlayerDetails: null,
             lastRefreshTime: null,
             autoRefreshInterval: null,
-            clockInterval: null,
-            gameStartTime: null,
-            timeRemaining: 5 * 60, // 5 minutes in seconds
-            timerInterval: null,
-            gameEnded: false
+            clockInterval: null
         };
 
         const ADMIN_PASSWORD = 'insight2025';
-        const TIME_LIMIT = 5 * 60; // 5 minutes in seconds
 
         const scenarios = [
             {
@@ -225,17 +280,6 @@
             }
         ];
 
-        // Utility Functions
-        function sanitizeInput(input) {
-            const div = document.createElement('div');
-            div.textContent = input;
-            return div.innerHTML;
-        }
-
-        function isValidEmail(email) {
-            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-        }
-
         function getGrade(score) {
             if (score >= 320) return { grade: 'A+', title: 'SaaS PE Master CFO', color: 'text-insight-orange' };
             if (score >= 280) return { grade: 'A', title: 'Top Quartile Performer', color: 'text-insight-navy' };
@@ -244,103 +288,28 @@
             return { grade: 'C', title: 'Keep Learning', color: 'text-insight-grey' };
         }
 
-        function formatTime(seconds) {
-            const mins = Math.floor(seconds / 60);
-            const secs = seconds % 60;
-            return `${mins}:${secs.toString().padStart(2, '0')}`;
-        }
-
-        function getTimerColor() {
-            if (gameState.timeRemaining <= 60) return 'text-red-600';
-            if (gameState.timeRemaining <= 120) return 'text-yellow-600';
-            return 'text-insight-navy';
-        }
-
-        function startTimer() {
-            gameState.gameStartTime = Date.now();
-            gameState.timeRemaining = TIME_LIMIT;
-            
-            if (gameState.timerInterval) {
-                clearInterval(gameState.timerInterval);
-            }
-            
-            gameState.timerInterval = setInterval(() => {
-                gameState.timeRemaining--;
-                
-                if (gameState.timeRemaining <= 0) {
-                    endGame();
-                }
-                
-                // Only render if expert analysis modal is not showing
-                if (!gameState.showExpertAnalysis) {
-                    render();
-                }
-            }, 1000);
-        }
-
-        function stopTimer() {
-            if (gameState.timerInterval) {
-                clearInterval(gameState.timerInterval);
-                gameState.timerInterval = null;
-            }
-        }
-
-        function endGame() {
-            if (gameState.gameEnded) return;
-            
-            gameState.gameEnded = true;
-            stopTimer();
-            gameState.screen = 'results';
-            saveScore();
-        }
-
         async function loadLeaderboard() {
             if (!window.db) {
-                console.error('Firebase not initialized');
+                console.error('Database not initialized');
                 return;
             }
             try {
                 gameState.isLoading = true;
                 render();
+                const snapshot = await window.db
+                    .collection('competitions')
+                    .doc(gameState.competitionId)
+                    .collection('scores')
+                    .orderBy('score', 'desc')
+                    .limit(100)
+                    .get();
                 
-                console.log('Loading leaderboard from:', gameState.competitionId);
-                
-                // Try with orderBy first (requires index)
-                try {
-                    const snapshot = await window.db
-                        .collection('competitions')
-                        .doc(gameState.competitionId)
-                        .collection('scores')
-                        .orderBy('score', 'desc')
-                        .limit(100)
-                        .get();
-                    
-                    gameState.leaderboard = [];
-                    snapshot.forEach(doc => gameState.leaderboard.push({ id: doc.id, ...doc.data() }));
-                    console.log('✅ Loaded', gameState.leaderboard.length, 'scores');
-                } catch (indexError) {
-                    // If index doesn't exist, fetch all and sort in JavaScript
-                    console.warn('Index not found, fetching all scores:', indexError.message);
-                    
-                    const snapshot = await window.db
-                        .collection('competitions')
-                        .doc(gameState.competitionId)
-                        .collection('scores')
-                        .get();
-                    
-                    gameState.leaderboard = [];
-                    snapshot.forEach(doc => gameState.leaderboard.push({ id: doc.id, ...doc.data() }));
-                    
-                    // Sort in JavaScript instead
-                    gameState.leaderboard.sort((a, b) => b.score - a.score);
-                    
-                    console.log('✅ Loaded and sorted', gameState.leaderboard.length, 'scores');
-                }
-                
+                gameState.leaderboard = [];
+                snapshot.forEach(doc => gameState.leaderboard.push({ id: doc.id, ...doc.data() }));
                 gameState.lastRefreshTime = Date.now();
             } catch (error) {
-                console.error('❌ Error loading leaderboard:', error);
-                alert('Failed to load leaderboard:\n\n' + error.message + '\n\nCheck browser console for details.');
+                console.error('Error loading leaderboard:', error);
+                alert('⚠️ Failed to load leaderboard. Please try again.');
             } finally {
                 gameState.isLoading = false;
                 render();
@@ -348,79 +317,51 @@
         }
 
         async function saveScore() {
-            if (!gameState.playerName.trim() || !window.db || gameState.isSaving) return;
+            const name = gameState.playerName.trim();
+            if (!name || !window.db) {
+                alert('⚠️ Please enter your name');
+                return;
+            }
             
+            if (name.length > 50) {
+                alert('⚠️ Name is too long (max 50 characters)');
+                return;
+            }
+
             try {
-                gameState.isSaving = true;
                 gameState.isLoading = true;
                 render();
-                
-                // Try to check for duplicate submission (may fail if security rules not configured)
-                const email = gameState.playerEmail.trim().toLowerCase();
-                try {
-                    const existingScores = await window.db
-                        .collection('competitions')
-                        .doc(gameState.competitionId)
-                        .collection('scores')
-                        .where('email', '==', email)
-                        .limit(1)
-                        .get();
-                    
-                    if (!existingScores.empty) {
-                        alert('⚠️ You have already submitted a score for this competition. Only one submission per player is allowed.');
-                        gameState.scoreSaved = true;
-                        return;
-                    }
-                } catch (dupError) {
-                    // If duplicate check fails (e.g., no security rules yet), continue anyway
-                    console.warn('Duplicate check skipped:', dupError.message);
-                }
-                
                 const entry = { 
-                    name: sanitizeInput(gameState.playerName.trim()),
-                    email: email,
+                    name: name,
+                    email: gameState.playerEmail || '',
                     score: gameState.score, 
                     timestamp: Date.now(), 
                     grade: getGrade(gameState.score).grade, 
                     competitionId: gameState.competitionId,
-                    choices: gameState.playerChoices,
-                    timeUsed: TIME_LIMIT - gameState.timeRemaining
+                    choices: gameState.playerChoices
                 };
+                await window.db
+                    .collection('competitions')
+                    .doc(gameState.competitionId)
+                    .collection('scores')
+                    .add(entry);
                 
-                await window.db.collection('competitions').doc(gameState.competitionId).collection('scores').add(entry);
                 gameState.scoreSaved = true;
-                console.log('✅ Score saved successfully');
+                await loadLeaderboard();
             } catch (error) {
-                console.error('Save error:', error);
-                
-                // Show detailed error for debugging
-                let errorMsg = '❌ Failed to save your score.\n\n';
-                errorMsg += 'Error: ' + error.message + '\n\n';
-                
-                if (error.code === 'permission-denied') {
-                    errorMsg += '⚠️ IMPORTANT: Firebase security rules may not be configured.\n';
-                    errorMsg += 'Your admin needs to set up security rules in Firebase Console.\n\n';
-                }
-                
-                errorMsg += 'Your score: ' + gameState.score + ' points\n';
-                errorMsg += 'Would you like to retry?';
-                
-                const retry = confirm(errorMsg);
-                if (retry) {
-                    gameState.isSaving = false;
-                    await saveScore();
-                } else {
-                    alert('⚠️ Your score was NOT recorded. Please take a screenshot and contact support.\n\nYour Score: ' + gameState.score + ' points\nName: ' + gameState.playerName + '\nEmail: ' + gameState.playerEmail);
-                }
+                console.error('Error saving score:', error);
+                alert('⚠️ Failed to save score. Please try again.');
             } finally {
-                gameState.isSaving = false;
                 gameState.isLoading = false;
                 render();
             }
         }
 
         function checkAdminPassword() {
-            const password = document.getElementById('adminPasswordInput').value;
+            const input = document.getElementById('adminPasswordInput');
+            if (!input) return;
+            
+            const password = input.value.trim();
             if (password === ADMIN_PASSWORD) {
                 gameState.isAdmin = true;
                 gameState.showAdminLogin = false;
@@ -430,11 +371,16 @@
                 render();
             } else {
                 alert('❌ Incorrect password');
+                input.value = '';
+                input.focus();
             }
         }
 
         function checkAdminFromIntro() {
-            const password = document.getElementById('adminPasscodeInput').value;
+            const input = document.getElementById('adminPasscodeInput');
+            if (!input) return;
+            
+            const password = input.value.trim();
             if (password === ADMIN_PASSWORD) {
                 gameState.isAdmin = true;
                 gameState.screen = 'admin';
@@ -443,38 +389,25 @@
                 render();
             } else {
                 alert('❌ Incorrect passcode');
-            }
-        }
-
-        function togglePasswordVisibility(inputId) {
-            const input = document.getElementById(inputId);
-            const button = event.currentTarget;
-            if (input.type === 'password') {
-                input.type = 'text';
-                button.innerHTML = '👁️';
-            } else {
-                input.type = 'password';
-                button.innerHTML = '👁️‍🗨️';
+                input.value = '';
+                input.focus();
             }
         }
 
         function startAutoRefresh() {
-            if (gameState.autoRefreshInterval) {
-                clearInterval(gameState.autoRefreshInterval);
-            }
+            stopAutoRefresh();
+            
             gameState.autoRefreshInterval = setInterval(() => {
                 if (gameState.screen === 'admin' && !gameState.viewingPlayerDetails) {
                     loadLeaderboard();
                 }
             }, 10000);
             
-            if (!gameState.clockInterval) {
-                gameState.clockInterval = setInterval(() => {
-                    if (gameState.screen === 'admin' && !gameState.viewingPlayerDetails) {
-                        render();
-                    }
-                }, 1000);
-            }
+            gameState.clockInterval = setInterval(() => {
+                if (gameState.screen === 'admin' && !gameState.viewingPlayerDetails) {
+                    render();
+                }
+            }, 1000);
         }
 
         function stopAutoRefresh() {
@@ -497,15 +430,23 @@
         }
 
         async function deleteScore(scoreId) {
-            if (!window.db || !confirm('Delete this entry?')) return;
+            if (!window.db || !confirm('⚠️ Delete this entry? This cannot be undone.')) return;
+            
             try {
                 gameState.isLoading = true;
                 render();
-                await window.db.collection('competitions').doc(gameState.competitionId).collection('scores').doc(scoreId).delete();
+                await window.db
+                    .collection('competitions')
+                    .doc(gameState.competitionId)
+                    .collection('scores')
+                    .doc(scoreId)
+                    .delete();
+                
                 await loadLeaderboard();
+                alert('✅ Entry deleted successfully');
             } catch (error) {
-                console.error('Error:', error);
-                alert('Failed to delete. Try again.');
+                console.error('Error deleting score:', error);
+                alert('⚠️ Failed to delete entry. Please try again.');
             } finally {
                 gameState.isLoading = false;
                 render();
@@ -513,19 +454,31 @@
         }
 
         async function clearAllScores() {
-            if (!window.db || !confirm('⚠️ DELETE ALL SCORES? This cannot be undone!')) return;
+            if (!window.db) return;
+            
+            if (!confirm('⚠️ DELETE ALL SCORES? This cannot be undone!')) return;
+            if (!confirm('Are you absolutely sure? This will delete all player data!')) return;
+            
             try {
                 gameState.isLoading = true;
                 render();
+                
+                const snapshot = await window.db
+                    .collection('competitions')
+                    .doc(gameState.competitionId)
+                    .collection('scores')
+                    .get();
+                
                 const batch = window.db.batch();
-                const snapshot = await window.db.collection('competitions').doc(gameState.competitionId).collection('scores').get();
                 snapshot.forEach(doc => batch.delete(doc.ref));
                 await batch.commit();
-                await loadLeaderboard();
-                alert('✅ All scores cleared');
+                
+                gameState.leaderboard = [];
+                gameState.lastRefreshTime = Date.now();
+                alert('✅ All scores cleared successfully');
             } catch (error) {
-                console.error('Error:', error);
-                alert('Failed to clear scores. Try again.');
+                console.error('Error clearing scores:', error);
+                alert('⚠️ Failed to clear scores. Please try again.');
             } finally {
                 gameState.isLoading = false;
                 render();
@@ -543,7 +496,7 @@
                 choiceText: scenarios[gameState.round].choices[index].text,
                 points: scenarios[gameState.round].choices[index].points
             });
-            render(); // Show selection immediately
+            
             setTimeout(() => { 
                 gameState.showExpertAnalysis = true; 
                 render(); 
@@ -552,10 +505,12 @@
 
         function closeExpertAnalysis() {
             const choice = scenarios[gameState.round].choices[gameState.selectedChoice];
+            
             gameState.metrics.arr = Math.max(0, Math.min(100, gameState.metrics.arr + choice.impact.arr));
             gameState.metrics.ebitdaMargin = Math.max(0, Math.min(100, gameState.metrics.ebitdaMargin + choice.impact.ebitdaMargin));
             gameState.metrics.nrr = Math.max(0, Math.min(100, gameState.metrics.nrr + choice.impact.nrr));
             gameState.metrics.multipleExpansion = Math.max(0, Math.min(100, gameState.metrics.multipleExpansion + choice.impact.multipleExpansion));
+            
             gameState.score += choice.points;
             gameState.showExpertAnalysis = false;
             
@@ -563,63 +518,68 @@
                 gameState.round++;
                 gameState.selectedChoice = null;
             } else {
-                endGame();
+                gameState.screen = 'results';
+                loadLeaderboard();
             }
+            
             render();
         }
 
         function restartGame() {
             stopAutoRefresh();
-            stopTimer();
-            gameState = { 
-                screen: 'welcome', 
-                round: 0, 
-                score: 0, 
-                selectedChoice: null, 
-                showExpertAnalysis: false, 
-                leaderboard: [], 
-                showLeaderboard: false, 
-                playerName: '', 
-                playerEmail: '', 
-                scoreSaved: false, 
-                competitionId: 'cfo-summit-2025', 
-                isLoading: false, 
-                isSaving: false,
-                metrics: { arr: 50, ebitdaMargin: 50, nrr: 50, multipleExpansion: 50 }, 
-                adminPassword: '', 
-                isAdmin: false, 
-                showAdminLogin: false, 
-                playerChoices: [], 
-                viewingPlayerDetails: null, 
-                lastRefreshTime: null, 
-                autoRefreshInterval: null, 
-                clockInterval: null,
-                gameStartTime: null,
-                timeRemaining: TIME_LIMIT,
-                timerInterval: null,
-                gameEnded: false
+            gameState = {
+                screen: 'welcome',
+                round: 0,
+                score: 0,
+                selectedChoice: null,
+                showExpertAnalysis: false,
+                leaderboard: [],
+                showLeaderboard: false,
+                playerName: '',
+                playerEmail: '',
+                scoreSaved: false,
+                competitionId: 'cfo-summit-2025',
+                isLoading: false,
+                metrics: { arr: 50, ebitdaMargin: 50, nrr: 50, multipleExpansion: 50 },
+                adminPassword: '',
+                isAdmin: false,
+                showAdminLogin: false,
+                playerChoices: [],
+                viewingPlayerDetails: null,
+                lastRefreshTime: null,
+                autoRefreshInterval: null,
+                clockInterval: null
             };
             render();
         }
 
         function startGame() {
-            const name = document.getElementById('playerName').value.trim();
-            const email = document.getElementById('playerEmail').value.trim();
+            const emailInput = document.getElementById('playerEmail');
+            const competitionInput = document.getElementById('competitionId');
             
-            if (!name) {
-                alert('⚠️ Please enter your name');
+            if (!emailInput || !competitionInput) {
+                alert('⚠️ Form error. Please refresh the page.');
                 return;
             }
             
-            if (!isValidEmail(email)) {
+            const email = emailInput.value.trim();
+            const competitionId = competitionInput.value.trim();
+            
+            if (!email || !email.includes('@') || email.length < 5) {
                 alert('⚠️ Please enter a valid email address');
+                emailInput.focus();
                 return;
             }
             
-            gameState.playerName = name;
+            if (!competitionId) {
+                alert('⚠️ Competition ID is required');
+                competitionInput.focus();
+                return;
+            }
+            
             gameState.playerEmail = email;
+            gameState.competitionId = competitionId;
             gameState.screen = 'playing';
-            startTimer();
             render();
         }
 
@@ -627,8 +587,8 @@
             const stats = scenarios.map((scenario, idx) => {
                 const questionScores = [];
                 gameState.leaderboard.forEach(player => {
-                    if (player.choices && player.choices[idx]) {
-                        questionScores.push(player.choices[idx].points);
+                    if (player.choices && Array.isArray(player.choices) && player.choices[idx]) {
+                        questionScores.push(player.choices[idx].points || 0);
                     }
                 });
                 
@@ -646,74 +606,96 @@
         }
 
         function initializeApp() {
-            console.log("Initializing app...");
+            console.log("✅ App initialized successfully!");
             render();
         }
 
         function render() {
             const app = document.getElementById('app');
-            if (gameState.screen === 'welcome') app.innerHTML = renderWelcome();
-            else if (gameState.screen === 'intro') app.innerHTML = renderIntro();
-            else if (gameState.screen === 'playing') app.innerHTML = renderGame();
-            else if (gameState.screen === 'results') app.innerHTML = renderResults();
-            else if (gameState.screen === 'admin') app.innerHTML = renderAdmin();
-            if (gameState.showExpertAnalysis) app.innerHTML += renderExpertAnalysis();
-            if (gameState.showAdminLogin) app.innerHTML += renderAdminLogin();
+            if (!app) return;
+            
+            // Scroll to top on every render
+            scrollToTop();
+            
+            try {
+                if (gameState.screen === 'welcome') app.innerHTML = renderWelcome();
+                else if (gameState.screen === 'intro') app.innerHTML = renderIntro();
+                else if (gameState.screen === 'playing') app.innerHTML = renderGame();
+                else if (gameState.screen === 'results') app.innerHTML = renderResults();
+                else if (gameState.screen === 'admin') app.innerHTML = renderAdmin();
+                
+                if (gameState.showExpertAnalysis) app.innerHTML += renderExpertAnalysis();
+                if (gameState.showAdminLogin) app.innerHTML += renderAdminLogin();
+            } catch (error) {
+                console.error('Render error:', error);
+                app.innerHTML = `
+                    <div class="min-h-screen flex items-center justify-center p-4">
+                        <div class="bg-white rounded-2xl p-8 max-w-md text-center">
+                            <div class="text-6xl mb-4">⚠️</div>
+                            <h2 class="text-2xl font-bold text-red-600 mb-4">Render Error</h2>
+                            <p class="text-gray-600 mb-4">Something went wrong. Please refresh the page.</p>
+                            <button onclick="location.reload()" class="bg-insight-orange text-white px-6 py-3 rounded-lg font-semibold hover:opacity-90">
+                                Refresh Page
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
         }
 
         function renderWelcome() {
-            return `<div class="min-h-screen p-4 flex items-center justify-center bg-gradient-to-br from-insight-navy via-insight-grey to-insight-orange"><div class="max-w-3xl w-full bg-white rounded-3xl shadow-2xl p-8 animate-scaleIn"><div class="text-center mb-8"><div class="relative inline-block mb-6"><div class="absolute inset-0 bg-insight-orange blur-2xl opacity-50 animate-pulse"></div><div class="relative bg-gradient-to-r from-insight-orange to-red-600 p-6 rounded-2xl"><svg class="w-20 h-20 text-white mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg></div></div><h1 class="text-5xl font-bold text-insight-navy mb-4 leading-tight">Welcome to<br/>The Allocation Game</h1><p class="text-2xl text-insight-orange font-semibold mb-2">CFO Summit 2025</p><p class="text-lg text-gray-600 max-w-2xl mx-auto">Put your SaaS PE strategy skills to the test! Face 10 real-world scenarios and compete for the top spot.</p></div><div class="bg-gradient-to-r from-orange-50 to-blue-50 rounded-2xl p-6 mb-8"><div class="flex items-start gap-4"><div class="flex-shrink-0"><div class="w-12 h-12 bg-insight-orange rounded-full flex items-center justify-center"><span class="text-2xl">🎯</span></div></div><div class="flex-1"><h2 class="text-xl font-bold text-insight-navy mb-3">What You'll Do:</h2><ul class="space-y-2 text-gray-700"><li class="flex items-start gap-2"><span class="text-insight-orange font-bold mt-1">•</span><span>Navigate <strong>10 challenging scenarios</strong> from M&A to pricing strategy</span></li><li class="flex items-start gap-2"><span class="text-insight-orange font-bold mt-1">•</span><span>Complete the game in <strong>5 minutes or less</strong></span></li><li class="flex items-start gap-2"><span class="text-insight-orange font-bold mt-1">•</span><span>Make <strong>CFO-level decisions</strong> that impact ARR, margins, and valuations</span></li><li class="flex items-start gap-2"><span class="text-insight-orange font-bold mt-1">•</span><span>Compete for <strong>top 3 placement</strong> - winners announced at the end</span></li><li class="flex items-start gap-2"><span class="text-insight-orange font-bold mt-1">•</span><span>Get <strong>expert feedback</strong> on every choice you make</span></li></ul></div></div></div><div class="bg-gray-50 rounded-2xl p-6 mb-8 border border-gray-200"><h3 class="text-sm font-bold text-insight-navy mb-3 flex items-center gap-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg> Privacy & Data Use</h3><div class="text-xs text-gray-600 leading-relaxed space-y-2"><p>• We collect your <strong>name and email</strong> to personalize your experience and allow you to save your score.</p><p>• Your <strong>game results are temporary</strong> and used only for the duration of this competition.</p><p>• We <strong>do not share individual results</strong> except for displaying the <strong>top 3 performers</strong> on the leaderboard.</p><p>• Your email will not be shared with third parties or used for marketing without your consent.</p><p>• <strong>One submission per player</strong> - duplicate entries will be rejected.</p><p>• Competition data will be deleted after the CFO Summit 2025 concludes.</p></div></div><button onclick="gameState.screen = 'intro'; render();" style="background: linear-gradient(to right, #FF531B, #dc2626);" class="w-full hover:opacity-90 text-white font-bold py-4 px-8 rounded-xl text-xl shadow-lg transition-all transform hover:scale-105">START ▶️</button><p class="text-center text-xs text-gray-500 mt-4">By continuing, you acknowledge our data practices outlined above.</p></div></div>`;
+            return `<div class="min-h-screen p-4 flex items-center justify-center bg-gradient-to-br from-insight-navy via-insight-grey to-insight-orange"><div class="max-w-3xl w-full bg-white rounded-3xl shadow-2xl p-6 md:p-8 animate-scaleIn"><div class="text-center mb-6 md:mb-8"><div class="relative inline-block mb-4 md:mb-6"><div class="absolute inset-0 bg-insight-orange blur-2xl opacity-50 animate-pulse"></div><div class="relative bg-gradient-to-r from-insight-orange to-red-600 p-4 md:p-6 rounded-2xl"><svg class="w-16 h-16 md:w-20 md:h-20 text-white mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg></div></div><h1 class="text-3xl md:text-5xl font-bold text-insight-navy mb-3 md:mb-4 leading-tight">Welcome to<br/>The Allocation Game</h1><p class="text-xl md:text-2xl text-insight-orange font-semibold mb-2">CFO Summit 2025</p><p class="text-base md:text-lg text-gray-600 max-w-2xl mx-auto">Put your SaaS PE strategy skills to the test! Face 10 real-world scenarios and compete for the top spot.</p></div><div class="bg-gradient-to-r from-orange-50 to-blue-50 rounded-2xl p-4 md:p-6 mb-6 md:mb-8"><div class="flex items-start gap-3 md:gap-4"><div class="flex-shrink-0"><div class="w-10 h-10 md:w-12 md:h-12 bg-insight-orange rounded-full flex items-center justify-center"><span class="text-xl md:text-2xl">🎯</span></div></div><div class="flex-1"><h2 class="text-lg md:text-xl font-bold text-insight-navy mb-2 md:mb-3">What You'll Do:</h2><ul class="space-y-2 text-sm md:text-base text-gray-700"><li class="flex items-start gap-2"><span class="text-insight-orange font-bold mt-1">•</span><span>Navigate <strong>10 challenging scenarios</strong> from M&A to pricing strategy</span></li><li class="flex items-start gap-2"><span class="text-insight-orange font-bold mt-1">•</span><span>Make <strong>CFO-level decisions</strong> that impact ARR, margins, and valuations</span></li><li class="flex items-start gap-2"><span class="text-insight-orange font-bold mt-1">•</span><span>Compete for <strong>top 3 placement</strong> on the leaderboard</span></li><li class="flex items-start gap-2"><span class="text-insight-orange font-bold mt-1">•</span><span>Get <strong>expert feedback</strong> on every choice you make</span></li></ul></div></div></div><div class="bg-gray-50 rounded-2xl p-4 md:p-6 mb-6 md:mb-8 border border-gray-200"><h3 class="text-xs md:text-sm font-bold text-insight-navy mb-2 md:mb-3 flex items-center gap-2"><svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg> Privacy & Data Use</h3><div class="text-xs leading-relaxed text-gray-600 space-y-1.5 md:space-y-2"><p>• We collect your <strong>name and email</strong> to personalize your experience and allow you to save your score.</p><p>• Your <strong>game results are temporary</strong> and used only for the duration of this competition.</p><p>• We <strong>do not share individual results</strong> except for displaying the <strong>top 3 performers</strong> on the leaderboard.</p><p>• Your email will not be shared with third parties or used for marketing without your consent.</p><p>• Competition data will be deleted after the CFO Summit 2025 concludes.</p></div></div><button onclick="gameState.screen = 'intro'; render();" class="w-full bg-gradient-to-r from-insight-orange to-red-600 hover:opacity-90 text-white font-bold py-3 md:py-4 px-6 md:px-8 rounded-xl text-base md:text-lg shadow-lg transition-all transform active:scale-95">🚀 Let's Play!</button><p class="text-center text-xs text-gray-500 mt-3 md:mt-4">By continuing, you acknowledge our data practices outlined above.</p></div></div>`;
         }
 
         function renderIntro() {
-            return `<div class="min-h-screen p-3 flex items-center justify-center bg-gradient-to-b from-white to-gray-50"><div class="max-w-xl w-full bg-white rounded-2xl shadow-lg p-5 relative"><button onclick="gameState.screen = 'welcome'; render();" class="absolute top-3 left-3 px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-600 font-semibold rounded-lg transition-all text-xs flex items-center gap-1"><span>←</span> Back</button><div class="text-center mb-5 pt-8"><div class="bg-insight-orange p-3 rounded-xl inline-block mb-3"><svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div><h1 class="text-2xl font-bold text-insight-navy mb-1">The Allocation Game</h1><p class="text-base text-insight-grey">CFO Summit 2025</p></div><div class="bg-yellow-50 border border-yellow-200 rounded-xl p-3 mb-3"><div class="flex items-center gap-2"><svg class="w-5 h-5 text-yellow-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><p class="text-sm text-yellow-800 font-semibold">You have 5 minutes to complete all 10 scenarios</p></div></div><div class="bg-blue-50 rounded-xl p-3 mb-3"><label class="block text-xs font-semibold text-insight-navy mb-2">Your Name *</label><input type="text" id="playerName" placeholder="Enter your name..." class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-insight-orange focus:ring-2 focus:ring-insight-orange focus:ring-opacity-20 focus:outline-none text-sm font-medium mb-3" required maxlength="50"/><label class="block text-xs font-semibold text-insight-navy mb-2">Your Email Address *</label><input type="email" id="playerEmail" placeholder="your@email.com" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-insight-orange focus:ring-2 focus:ring-insight-orange focus:ring-opacity-20 focus:outline-none text-sm font-medium mb-1" required/><p class="text-xs text-gray-500 mb-3">⚠️ One submission per email address</p></div><button onclick="startGame()" class="w-full bg-insight-orange hover:opacity-90 text-white font-semibold py-2.5 px-5 rounded-xl text-sm shadow-sm transition-all mb-4">🚀 Start Challenge</button><div class="border-t border-gray-200 pt-4"><div class="bg-gray-50 rounded-xl p-3"><label class="block text-xs font-semibold text-insight-navy mb-2">🔒 Admin Access</label><div class="flex gap-2"><div class="flex-1 relative"><input type="password" id="adminPasscodeInput" placeholder="Enter passcode..." class="w-full px-3 py-2 pr-10 rounded-lg border border-gray-200 focus:border-insight-orange focus:ring-2 focus:ring-insight-orange focus:ring-opacity-20 focus:outline-none text-sm" onkeypress="if(event.key === 'Enter') checkAdminFromIntro()"/><button onclick="togglePasswordVisibility('adminPasscodeInput')" class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 text-lg">👁️‍🗨️</button></div><button onclick="checkAdminFromIntro()" class="px-4 py-2 bg-insight-navy hover:opacity-90 text-white font-semibold rounded-lg transition-all text-sm">Enter</button></div></div></div></div></div>`;
+            return `<div class="min-h-screen p-3 flex items-center justify-center bg-gradient-to-b from-white to-gray-50"><div class="max-w-xl w-full bg-white rounded-2xl shadow-lg p-5 relative"><button onclick="gameState.screen = 'welcome'; render();" class="absolute top-3 left-3 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-600 font-semibold rounded-lg transition-all text-xs flex items-center gap-1"><span>←</span> Back</button><div class="text-center mb-5 pt-10"><div class="bg-insight-orange p-3 rounded-xl inline-block mb-3"><svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div><h1 class="text-xl md:text-2xl font-bold text-insight-navy mb-1">The Allocation Game</h1><p class="text-sm md:text-base text-insight-grey">CFO Summit 2025</p></div><div class="bg-blue-50 rounded-xl p-3 mb-3"><label class="block text-xs font-semibold text-insight-navy mb-2">Your Email Address *</label><input type="email" id="playerEmail" placeholder="your@email.com" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 focus:border-insight-orange focus:ring-2 focus:ring-insight-orange focus:ring-opacity-20 focus:outline-none text-base font-medium mb-3" required/><label class="block text-xs font-semibold text-insight-navy mb-2">Competition ID:</label><input type="text" id="competitionId" value="${escapeHtml(gameState.competitionId)}" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 focus:border-insight-orange focus:ring-2 focus:ring-insight-orange focus:ring-opacity-20 focus:outline-none text-base font-medium"/><p class="text-xs text-gray-500 mt-2">📢 All players use same ID</p></div><button onclick="startGame()" class="w-full bg-insight-orange hover:opacity-90 active:scale-95 text-white font-semibold py-3 px-5 rounded-xl text-base shadow-sm transition-all mb-4">🚀 Start Challenge</button><div class="border-t border-gray-200 pt-4"><div class="bg-gray-50 rounded-xl p-3"><label class="block text-xs font-semibold text-insight-navy mb-2">🔒 Admin Access</label><div class="flex gap-2"><input type="password" id="adminPasscodeInput" placeholder="Enter passcode..." class="flex-1 px-3 py-2.5 rounded-lg border border-gray-200 focus:border-insight-orange focus:ring-2 focus:ring-insight-orange focus:ring-opacity-20 focus:outline-none text-base" onkeypress="if(event.key === 'Enter') checkAdminFromIntro()"/><button onclick="checkAdminFromIntro()" class="px-4 py-2.5 bg-insight-navy hover:opacity-90 active:scale-95 text-white font-semibold rounded-lg transition-all text-sm">Enter</button></div></div></div></div></div>`;
         }
 
         function renderGame() {
             const s = scenarios[gameState.round];
-            const timerColor = getTimerColor();
-            const timerBg = gameState.timeRemaining <= 60 ? 'bg-red-50' : gameState.timeRemaining <= 120 ? 'bg-yellow-50' : 'bg-blue-50';
-            
-            return `<div class="min-h-screen p-3 bg-gradient-to-b from-white to-gray-50"><div class="max-w-3xl mx-auto py-3"><div class="bg-white rounded-2xl shadow-sm p-4 mb-3"><div class="flex justify-between items-center mb-2"><div><h2 class="text-lg font-bold text-insight-navy">Scenario ${gameState.round + 1} of 10</h2><p class="text-insight-orange font-semibold text-base">${gameState.score} points</p></div><div class="${timerBg} px-4 py-2 rounded-xl"><div class="text-xs text-gray-600 font-medium">Time Remaining</div><div class="text-2xl font-bold ${timerColor}">${formatTime(gameState.timeRemaining)}</div></div></div><div class="w-full bg-gray-100 rounded-full h-2"><div class="bg-gradient-to-r from-insight-orange to-insight-navy h-2 rounded-full transition-all" style="width: ${((gameState.round + 1) / 10) * 100}%"></div></div></div><div class="bg-white rounded-2xl shadow-sm p-5"><h1 class="text-xl font-bold text-insight-navy mb-2">${s.title}</h1><p class="text-sm text-gray-600 mb-4 leading-relaxed">${s.situation}</p><div class="space-y-2">${s.choices.map((c, i) => `<button onclick="handleChoice(${i})" ${gameState.selectedChoice !== null ? 'disabled' : ''} class="w-full text-left p-3 rounded-xl transition-all ${gameState.selectedChoice === i ? 'bg-orange-50 shadow-md ring-2 ring-insight-orange' : gameState.selectedChoice !== null ? 'bg-gray-50 opacity-40 cursor-not-allowed' : 'bg-white hover:bg-gray-50 hover:shadow-sm cursor-pointer'}"><div class="flex gap-2 items-start"><div class="w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${gameState.selectedChoice === i ? 'border-insight-orange bg-insight-orange' : 'border-gray-300'}">${gameState.selectedChoice === i ? '<div class="w-2.5 h-2.5 bg-white rounded-full"></div>' : ''}</div><span class="text-insight-navy font-medium text-sm leading-relaxed">${c.text}</span></div></button>`).join('')}</div></div></div></div>`;
+            return `<div class="min-h-screen p-3 bg-gradient-to-b from-white to-gray-50"><div class="max-w-3xl mx-auto py-3"><div class="bg-white rounded-2xl shadow-sm p-4 mb-3"><h2 class="text-base md:text-lg font-bold text-insight-navy mb-1">Scenario ${gameState.round + 1} of 10</h2><p class="text-insight-orange font-semibold text-sm md:text-base mb-2">${gameState.score} points</p><div class="w-full bg-gray-100 rounded-full h-2"><div class="bg-gradient-to-r from-insight-orange to-insight-navy h-2 rounded-full transition-all" style="width: ${((gameState.round + 1) / 10) * 100}%"></div></div></div><div class="bg-white rounded-2xl shadow-sm p-4 md:p-5"><h1 class="text-lg md:text-xl font-bold text-insight-navy mb-2">${escapeHtml(s.title)}</h1><p class="text-sm text-gray-600 mb-4 leading-relaxed">${escapeHtml(s.situation)}</p><div class="space-y-2">${s.choices.map((c, i) => `<button onclick="handleChoice(${i})" ${gameState.selectedChoice !== null ? 'disabled' : ''} class="w-full text-left p-3 rounded-xl transition-all ${gameState.selectedChoice === i ? 'bg-orange-50 shadow-md ring-2 ring-insight-orange' : gameState.selectedChoice !== null ? 'bg-gray-50 opacity-40 cursor-not-allowed' : 'bg-white hover:bg-gray-50 active:bg-gray-100 hover:shadow-sm border border-gray-200'}"><div class="flex gap-2 items-start"><div class="w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${gameState.selectedChoice === i ? 'border-insight-orange bg-insight-orange' : 'border-gray-300'}">${gameState.selectedChoice === i ? '<div class="w-2.5 h-2.5 bg-white rounded-full"></div>' : ''}</div><span class="text-insight-navy font-medium text-sm leading-relaxed">${escapeHtml(c.text)}</span></div></button>`).join('')}</div></div></div></div>`;
         }
 
         function renderExpertAnalysis() {
             const c = scenarios[gameState.round].choices[gameState.selectedChoice];
-            return `<div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-3 animate-fadeIn"><div class="bg-white rounded-2xl p-5 max-w-2xl w-full max-h-[92vh] overflow-y-auto shadow-2xl animate-scaleIn"><button onclick="closeExpertAnalysis()" class="w-full bg-insight-orange hover:opacity-90 text-white font-semibold py-2.5 px-5 rounded-xl text-sm mb-4 transition-all shadow-sm">⬇️ Continue to Next Scenario ⬇️</button><div class="space-y-4"><div><div class="text-center mb-3"><h2 class="text-lg font-bold text-insight-navy">Analysis</h2></div><div class="bg-orange-50 rounded-xl p-3 mb-3"><p class="font-semibold text-insight-navy mb-2 text-sm">${c.text}</p><p class="text-gray-700 leading-relaxed text-xs">${c.feedback}</p></div><div class="text-center"><span class="text-2xl font-bold text-insight-orange">+${c.points} Points</span></div></div><div class="bg-blue-50 rounded-xl p-3"><h3 class="font-semibold text-insight-navy mb-3 text-sm">Portfolio Impact</h3><div class="grid grid-cols-2 gap-2"><div class="bg-white p-2.5 rounded-lg shadow-sm"><div class="text-xs text-insight-grey font-medium uppercase tracking-wide mb-1">ARR Growth</div><div class="text-lg font-bold text-insight-navy">${c.impact.arr > 0 ? '+' : ''}${c.impact.arr}%</div></div><div class="bg-white p-2.5 rounded-lg shadow-sm"><div class="text-xs text-insight-grey font-medium uppercase tracking-wide mb-1">EBITDA Margin</div><div class="text-lg font-bold text-insight-navy">${c.impact.ebitdaMargin > 0 ? '+' : ''}${c.impact.ebitdaMargin}%</div></div><div class="bg-white p-2.5 rounded-lg shadow-sm"><div class="text-xs text-insight-grey font-medium uppercase tracking-wide mb-1">NRR</div><div class="text-lg font-bold text-insight-navy">${c.impact.nrr > 0 ? '+' : ''}${c.impact.nrr}%</div></div><div class="bg-white p-2.5 rounded-lg shadow-sm"><div class="text-xs text-insight-grey font-medium uppercase tracking-wide mb-1">Multiple Expansion</div><div class="text-lg font-bold text-insight-navy">${c.impact.multipleExpansion > 0 ? '+' : ''}${c.impact.multipleExpansion}%</div></div></div></div></div></div></div>`;
+            return `<div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-3 animate-fadeIn backdrop-blur-sm" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;"><div class="bg-white rounded-2xl p-4 md:p-5 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl animate-scaleIn scroll-container"><button onclick="closeExpertAnalysis()" class="w-full bg-insight-orange hover:opacity-90 active:scale-95 text-white font-semibold py-2.5 px-5 rounded-xl text-sm mb-4 transition-all shadow-sm">⬇️ Continue to Next Scenario ⬇️</button><div class="space-y-4"><div><div class="text-center mb-3"><h2 class="text-base md:text-lg font-bold text-insight-navy">Expert Analysis</h2></div><div class="bg-orange-50 rounded-xl p-3 mb-3"><p class="font-semibold text-insight-navy mb-2 text-sm">${escapeHtml(c.text)}</p><p class="text-gray-700 leading-relaxed text-xs">${escapeHtml(c.feedback)}</p></div><div class="text-center"><span class="text-xl md:text-2xl font-bold text-insight-orange">+${c.points} Points</span></div></div><div class="bg-blue-50 rounded-xl p-3"><h3 class="font-semibold text-insight-navy mb-3 text-sm">Portfolio Impact</h3><div class="grid grid-cols-2 gap-2"><div class="bg-white p-2.5 rounded-lg shadow-sm"><div class="text-xs text-insight-grey font-medium uppercase tracking-wide mb-1">ARR Growth</div><div class="text-base md:text-lg font-bold text-insight-navy">${c.impact.arr > 0 ? '+' : ''}${c.impact.arr}%</div></div><div class="bg-white p-2.5 rounded-lg shadow-sm"><div class="text-xs text-insight-grey font-medium uppercase tracking-wide mb-1">EBITDA Margin</div><div class="text-base md:text-lg font-bold text-insight-navy">${c.impact.ebitdaMargin > 0 ? '+' : ''}${c.impact.ebitdaMargin}%</div></div><div class="bg-white p-2.5 rounded-lg shadow-sm"><div class="text-xs text-insight-grey font-medium uppercase tracking-wide mb-1">NRR</div><div class="text-base md:text-lg font-bold text-insight-navy">${c.impact.nrr > 0 ? '+' : ''}${c.impact.nrr}%</div></div><div class="bg-white p-2.5 rounded-lg shadow-sm"><div class="text-xs text-insight-grey font-medium uppercase tracking-wide mb-1">Multiple Expansion</div><div class="text-base md:text-lg font-bold text-insight-navy">${c.impact.multipleExpansion > 0 ? '+' : ''}${c.impact.multipleExpansion}%</div></div></div></div></div></div></div>`;
         }
 
         function renderResults() {
             const r = getGrade(gameState.score);
-            const timeUsed = TIME_LIMIT - gameState.timeRemaining;
-            return `<div class="min-h-screen p-3 flex items-center justify-center bg-gradient-to-b from-white to-gray-50"><div class="max-w-xl w-full bg-white rounded-2xl shadow-lg p-5 max-h-[96vh] overflow-y-auto"><div class="text-center mb-4"><h1 class="text-xl font-bold text-insight-navy mb-2">Game Complete!</h1><div class="text-4xl font-bold mb-2 ${r.color}">${r.grade}</div><p class="text-lg font-semibold text-insight-navy mb-3">${r.title}</p><div class="inline-flex gap-2 px-5 py-2 bg-orange-50 rounded-xl mb-2"><span class="text-xl font-bold text-insight-orange">${gameState.score} / 350 points</span></div><div class="text-sm text-gray-600">Time: ${formatTime(timeUsed)}</div></div>${gameState.isSaving ? '<div class="bg-blue-50 rounded-xl p-4 mb-4 text-center"><div class="animate-pulse text-2xl mb-2">⏳</div><h2 class="text-base font-semibold text-blue-700">Saving your score...</h2><p class="text-sm text-gray-600 mt-1">Please wait</p></div>' : ''}${gameState.scoreSaved ? `<div class="bg-green-50 rounded-xl p-4 mb-4 text-center"><div class="text-3xl mb-2">✅</div><h2 class="text-base font-semibold text-green-700 mb-2">Score Submitted!</h2><p class="text-sm text-gray-600">Thank you for playing, <strong>${gameState.playerName}</strong>!</p><p class="text-xs text-gray-500 mt-2">The top 3 winners will be announced at the end of the competition.</p></div>` : ''}${!gameState.scoreSaved && !gameState.isSaving ? '<div class="bg-red-50 rounded-xl p-4 mb-4 text-center"><div class="text-3xl mb-2">⚠️</div><h2 class="text-base font-semibold text-red-700 mb-2">Score Not Saved</h2><p class="text-sm text-gray-600">Please contact support if this was an error.</p></div>' : ''}<div class="bg-blue-50 rounded-xl p-4 mb-4"><h3 class="text-sm font-bold text-insight-navy mb-2 text-center">🏆 Competition Status</h3><p class="text-xs text-gray-600 text-center">Your score has been recorded. Winners will be revealed shortly!</p></div><button onclick="gameState.showAdminLogin = true; render();" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-5 rounded-xl transition-all text-xs">🔒 Admin Access</button></div></div>`;
+            return `<div class="min-h-screen p-3 flex items-center justify-center bg-gradient-to-b from-white to-gray-50"><div class="max-w-xl w-full bg-white rounded-2xl shadow-lg p-5 max-h-[96vh] overflow-y-auto scroll-container"><div class="text-center mb-4"><h1 class="text-xl font-bold text-insight-navy mb-2">Portfolio Complete!</h1><div class="text-4xl font-bold mb-2 ${r.color}">${escapeHtml(r.grade)}</div><p class="text-lg font-semibold text-insight-navy mb-3">${escapeHtml(r.title)}</p><div class="inline-flex gap-2 px-5 py-2 bg-orange-50 rounded-xl"><span class="text-xl font-bold text-insight-orange">${gameState.score} / 350</span></div></div>${!gameState.scoreSaved ? `<div class="bg-gray-50 rounded-xl p-3 mb-3"><h2 class="text-base font-semibold text-insight-navy mb-2">💾 Save Your Score</h2><div class="flex gap-2"><input type="text" id="playerName" placeholder="Enter your name..." class="flex-1 px-3 py-2.5 rounded-lg border border-gray-200 focus:border-insight-orange focus:ring-2 focus:ring-insight-orange focus:ring-opacity-20 focus:outline-none text-base" maxlength="50"/><button onclick="gameState.playerName = document.getElementById('playerName').value; saveScore();" class="px-3 py-2.5 bg-insight-orange hover:opacity-90 active:scale-95 text-white font-semibold rounded-lg transition-all text-sm flex-shrink-0" ${gameState.isLoading ? 'disabled' : ''}>${gameState.isLoading ? '⏳' : '💾'} Save</button></div></div>` : '<div class="bg-green-50 rounded-xl p-3 mb-3 text-center"><div class="text-2xl mb-1">🎉</div><h2 class="text-base font-semibold text-green-700">Score Saved!</h2></div>'}<button onclick="restartGame()" class="w-full bg-insight-orange hover:opacity-90 active:scale-95 text-white font-semibold py-2.5 px-5 rounded-xl mb-2 transition-all text-sm">🔄 Play Again</button><button onclick="gameState.showAdminLogin = true; render();" class="w-full bg-gray-200 hover:bg-gray-300 active:bg-gray-400 text-gray-700 font-semibold py-2 px-5 rounded-xl transition-all text-xs">🔒 Admin Access</button></div></div>`;
         }
 
         function renderAdminLogin() {
-            return `<div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-3 animate-fadeIn"><div class="bg-white rounded-2xl p-5 max-w-sm w-full shadow-2xl animate-scaleIn"><h2 class="text-lg font-bold text-insight-navy mb-3 text-center">🔒 Admin Login</h2><div class="mb-3 relative"><input type="password" id="adminPasswordInput" placeholder="Enter admin password..." class="w-full px-3 py-2 pr-10 rounded-lg border border-gray-200 focus:border-insight-orange focus:ring-2 focus:ring-insight-orange focus:ring-opacity-20 focus:outline-none text-sm" onkeypress="if(event.key === 'Enter') checkAdminPassword()"/><button onclick="togglePasswordVisibility('adminPasswordInput')" class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 text-lg">👁️‍🗨️</button></div><div class="flex gap-2"><button onclick="checkAdminPassword()" class="flex-1 bg-insight-orange hover:opacity-90 text-white font-semibold py-2 px-4 rounded-lg transition-all text-sm">Login</button><button onclick="gameState.showAdminLogin = false; render();" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg transition-all text-sm">Cancel</button></div></div></div>`;
+            return `<div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-3 animate-fadeIn backdrop-blur-sm" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;"><div class="bg-white rounded-2xl p-5 max-w-sm w-full shadow-2xl animate-scaleIn"><h2 class="text-lg font-bold text-insight-navy mb-3 text-center">🔒 Admin Login</h2><div class="mb-3"><input type="password" id="adminPasswordInput" placeholder="Enter admin password..." class="w-full px-3 py-2.5 rounded-lg border border-gray-200 focus:border-insight-orange focus:ring-2 focus:ring-insight-orange focus:ring-opacity-20 focus:outline-none text-base" onkeypress="if(event.key === 'Enter') checkAdminPassword()"/></div><div class="flex gap-2"><button onclick="checkAdminPassword()" class="flex-1 bg-insight-orange hover:opacity-90 active:scale-95 text-white font-semibold py-2.5 px-4 rounded-lg transition-all text-sm">Login</button><button onclick="gameState.showAdminLogin = false; render();" class="px-4 py-2.5 bg-gray-200 hover:bg-gray-300 active:bg-gray-400 text-gray-700 font-semibold rounded-lg transition-all text-sm">Cancel</button></div></div></div>`;
         }
 
         function renderAdmin() {
-            if (gameState.viewingPlayerDetails) {
+            if (gameState.viewingPlayerDetails !== null) {
                 return renderPlayerDetails();
             }
+            
             const refreshTime = getTimeSinceRefresh();
             const topThree = gameState.leaderboard.slice(0, 3);
             const questionStats = calculateQuestionStats();
-            const dbStatus = window.db ? '✅ Connected' : '❌ Not Connected';
-            const dbInfo = window.db ? `Firebase: ${gameState.competitionId}` : 'Firebase not initialized';
+            const avgScore = gameState.leaderboard.length > 0 
+                ? Math.round(gameState.leaderboard.reduce((sum, e) => sum + e.score, 0) / gameState.leaderboard.length) 
+                : 0;
+            const highScore = gameState.leaderboard.length > 0 ? gameState.leaderboard[0].score : 0;
             
-            return `<div class="min-h-screen p-3 bg-gradient-to-b from-white to-gray-50"><div class="max-w-6xl mx-auto py-3"><div class="bg-white rounded-2xl shadow-lg p-5 mb-3"><div class="flex justify-between items-center mb-4"><h1 class="text-xl font-bold text-insight-navy">🔧 Admin Console</h1><div class="flex gap-2"><button onclick="gameState.screen = 'intro'; stopAutoRefresh(); render();" class="px-3 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 font-semibold rounded-lg transition-all text-xs">← Intro</button><button onclick="gameState.screen = 'welcome'; gameState.isAdmin = false; stopAutoRefresh(); render();" class="px-3 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg transition-all text-xs">Logout</button></div></div><div class="bg-orange-50 rounded-xl p-3 mb-3"><div class="flex justify-between items-center"><div><p class="text-insight-navy text-xs"><strong>Competition:</strong> ${gameState.competitionId}</p><p class="text-insight-grey text-xs mt-1">Total: ${gameState.leaderboard.length} entries</p><p class="text-xs mt-1"><strong>${dbStatus}</strong> • ${dbInfo}</p></div><div class="text-right"><div class="flex items-center gap-2"><div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div><span class="text-xs text-insight-grey">Live • ${refreshTime}</span></div><p class="text-xs text-insight-grey mt-1">Auto-refresh: 10s</p></div></div></div>${gameState.leaderboard.length === 0 ? '<div class="bg-yellow-50 border border-yellow-200 rounded-xl p-3 mb-3"><div class="flex items-start gap-2"><div class="text-2xl">⚠️</div><div class="flex-1"><p class="text-sm font-semibold text-yellow-800 mb-1">No Scores Found</p><p class="text-xs text-yellow-700">Possible reasons:</p><ul class="text-xs text-yellow-700 mt-1 space-y-1"><li>• No players have submitted yet</li><li>• Firebase security rules may be blocking reads</li><li>• Wrong competition ID: ${gameState.competitionId}</li></ul><p class="text-xs text-yellow-700 mt-2"><strong>Debug:</strong> Check browser console (F12) for errors</p></div></div></div>' : ''}<div class="flex gap-2 mb-3"><button onclick="loadLeaderboard()" class="px-3 py-2 bg-insight-navy hover:opacity-90 text-white font-semibold rounded-lg transition-all text-xs">${gameState.isLoading ? '⏳ Loading...' : '🔄 Refresh Now'}</button><button onclick="console.log('Firebase DB:', window.db); console.log('Competition:', gameState.competitionId); console.log('Leaderboard:', gameState.leaderboard);" class="px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition-all text-xs">🐛 Debug to Console</button><button onclick="clearAllScores()" class="px-3 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-all text-xs">🗑️ Clear All</button></div><div class="grid md:grid-cols-2 gap-3 mb-3"><div class="bg-blue-50 rounded-xl p-4"><h3 class="text-base font-semibold text-insight-navy mb-3">🏆 Top 3 Leaderboard</h3>${topThree.length > 0 ? `<div class="space-y-2">${topThree.map((e, i) => `<div class="flex justify-between items-center p-3 rounded-xl bg-white shadow-sm"><div class="flex gap-2 items-center flex-1 min-w-0"><div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-white text-sm flex-shrink-0 ${i === 0 ? 'bg-yellow-500' : i === 1 ? 'bg-gray-400' : 'bg-yellow-700'}">${i + 1}</div><div class="flex-1 min-w-0 mr-2"><div class="font-semibold text-insight-navy text-sm truncate">${e.name}</div><div class="text-xs text-insight-grey">${e.grade} • ${formatTime(e.timeUsed || 0)}</div></div><div class="text-xl font-bold text-insight-orange flex-shrink-0">${e.score}</div></div></div>`).join('')}</div>` : '<div class="text-center py-4 text-gray-400 text-sm">No entries yet</div>'}</div><div class="bg-green-50 rounded-xl p-4"><h3 class="text-base font-semibold text-insight-navy mb-3">📊 Overall Stats</h3><div class="space-y-2"><div class="flex justify-between p-2 bg-white rounded-lg"><span class="text-xs text-insight-grey">Total Players:</span><span class="font-bold text-insight-navy">${gameState.leaderboard.length}</span></div><div class="flex justify-between p-2 bg-white rounded-lg"><span class="text-xs text-insight-grey">Avg Score:</span><span class="font-bold text-insight-navy">${gameState.leaderboard.length > 0 ? Math.round(gameState.leaderboard.reduce((sum, e) => sum + e.score, 0) / gameState.leaderboard.length) : 0}</span></div><div class="flex justify-between p-2 bg-white rounded-lg"><span class="text-xs text-insight-grey">Highest Score:</span><span class="font-bold text-insight-orange">${gameState.leaderboard.length > 0 ? gameState.leaderboard[0].score : 0}</span></div></div></div></div><div class="bg-purple-50 rounded-xl p-4 mb-3"><h3 class="text-base font-semibold text-insight-navy mb-3">📈 Performance by Question</h3><div class="overflow-x-auto"><table class="w-full text-xs"><thead class="bg-white"><tr><th class="px-2 py-2 text-left font-semibold text-insight-navy">Q#</th><th class="px-2 py-2 text-left font-semibold text-insight-navy">Scenario</th><th class="px-2 py-2 text-center font-semibold text-insight-navy">Responses</th><th class="px-2 py-2 text-center font-semibold text-insight-navy">Avg Score</th><th class="px-2 py-2 text-center font-semibold text-insight-navy">High Score</th></tr></thead><tbody>${questionStats.map((stat, idx) => `<tr class="border-t border-purple-100 hover:bg-white"><td class="px-2 py-2 font-bold text-insight-orange">${idx + 1}</td><td class="px-2 py-2 text-insight-navy">${stat.title}</td><td class="px-2 py-2 text-center text-insight-grey">${stat.count}</td><td class="px-2 py-2 text-center font-bold text-insight-navy">${stat.avg}</td><td class="px-2 py-2 text-center font-bold text-green-600">${stat.high}</td></tr>`).join('')}</tbody></table></div></div>${gameState.leaderboard.length > 0 ? `<div class="bg-gray-50 rounded-xl p-3"><h2 class="text-base font-semibold text-insight-navy mb-2">📧 All Entries (${gameState.leaderboard.length})</h2><div class="overflow-x-auto"><table class="w-full text-xs"><thead class="bg-white"><tr><th class="px-2 py-2 text-left font-semibold text-insight-navy">#</th><th class="px-2 py-2 text-left font-semibold text-insight-navy">Name</th><th class="px-2 py-2 text-left font-semibold text-insight-navy">Email</th><th class="px-2 py-2 text-left font-semibold text-insight-navy">Score</th><th class="px-2 py-2 text-left font-semibold text-insight-navy">Grade</th><th class="px-2 py-2 text-left font-semibold text-insight-navy">Time</th><th class="px-2 py-2 text-left font-semibold text-insight-navy">Date</th><th class="px-2 py-2 text-center font-semibold text-insight-navy">Actions</th></tr></thead><tbody>${gameState.leaderboard.map((e, i) => `<tr class="border-t border-gray-200 hover:bg-white"><td class="px-2 py-2"><div class="w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs ${i < 3 ? 'bg-insight-orange text-white' : 'bg-gray-200 text-gray-600'}">${i + 1}</div></td><td class="px-2 py-2 font-semibold text-insight-navy">${e.name}</td><td class="px-2 py-2 text-insight-grey">${e.email || 'N/A'}</td><td class="px-2 py-2 font-bold text-insight-orange">${e.score}</td><td class="px-2 py-2 text-insight-grey">${e.grade}</td><td class="px-2 py-2 text-insight-grey">${formatTime(e.timeUsed || 0)}</td><td class="px-2 py-2 text-insight-grey whitespace-nowrap">${new Date(e.timestamp).toLocaleDateString('en-US', {month: 'short', day: 'numeric'})} ${new Date(e.timestamp).toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit'})}</td><td class="px-2 py-2 text-center"><div class="flex gap-1 justify-center">${e.choices ? `<button onclick="gameState.viewingPlayerDetails = ${i}; stopAutoRefresh(); render();" class="px-2 py-1 bg-blue-100 hover:bg-blue-200 text-blue-600 font-semibold rounded text-xs">View</button>` : ''}<button onclick="deleteScore('${e.id}')" class="px-2 py-1 bg-red-100 hover:bg-red-200 text-red-600 font-semibold rounded text-xs">Del</button></div></td></tr>`).join('')}</tbody></table></div></div>` : '<div class="bg-gray-50 rounded-xl p-4 text-center"><p class="text-sm text-gray-500 mb-2">No entries to display</p><button onclick="loadLeaderboard()" class="px-4 py-2 bg-insight-orange hover:opacity-90 text-white font-semibold rounded-lg text-sm">🔄 Try Refreshing</button></div>'}</div></div></div>`;
+            return `<div class="min-h-screen p-3 bg-gradient-to-b from-white to-gray-50 scroll-container"><div class="max-w-6xl mx-auto py-3"><div class="bg-white rounded-2xl shadow-lg p-4 md:p-5 mb-3"><div class="flex justify-between items-center mb-4"><h1 class="text-lg md:text-xl font-bold text-insight-navy">🔧 Admin Console</h1><div class="flex gap-2"><button onclick="gameState.screen = 'intro'; stopAutoRefresh(); render();" class="px-2 md:px-3 py-1.5 md:py-2 bg-blue-100 hover:bg-blue-200 active:bg-blue-300 text-blue-700 font-semibold rounded-lg transition-all text-xs">← Intro</button><button onclick="gameState.screen = 'welcome'; gameState.isAdmin = false; stopAutoRefresh(); render();" class="px-2 md:px-3 py-1.5 md:py-2 bg-gray-200 hover:bg-gray-300 active:bg-gray-400 text-gray-700 font-semibold rounded-lg transition-all text-xs">Logout</button></div></div><div class="bg-orange-50 rounded-xl p-3 mb-3"><div class="flex justify-between items-center"><div><p class="text-insight-navy text-xs"><strong>Competition:</strong> ${escapeHtml(gameState.competitionId)}</p><p class="text-insight-grey text-xs mt-1">Total: ${gameState.leaderboard.length} entries</p></div><div class="text-right"><div class="flex items-center gap-2"><div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div><span class="text-xs text-insight-grey">Live • ${refreshTime}</span></div><p class="text-xs text-insight-grey mt-1">Auto-refresh: 10s</p></div></div></div><div class="flex flex-wrap gap-2 mb-3"><button onclick="loadLeaderboard()" class="px-3 py-2 bg-insight-navy hover:opacity-90 active:scale-95 text-white font-semibold rounded-lg transition-all text-xs" ${gameState.isLoading ? 'disabled' : ''}>${gameState.isLoading ? '⏳' : '🔄'} Refresh Now</button><button onclick="clearAllScores()" class="px-3 py-2 bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-semibold rounded-lg transition-all text-xs">🗑️ Clear All</button></div><div class="grid md:grid-cols-2 gap-3 mb-3"><div class="bg-blue-50 rounded-xl p-4"><h3 class="text-sm md:text-base font-semibold text-insight-navy mb-3">🏆 Top 3 Leaderboard</h3>${topThree.length > 0 ? `<div class="space-y-2">${topThree.map((e, i) => `<div class="flex justify-between items-center p-2.5 md:p-3 rounded-xl bg-white shadow-sm"><div class="flex gap-2 items-center flex-1 min-w-0"><div class="w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center font-bold text-white text-xs md:text-sm flex-shrink-0 ${i === 0 ? 'bg-yellow-500' : i === 1 ? 'bg-gray-400' : 'bg-yellow-700'}">${i + 1}</div><div class="flex-1 min-w-0 mr-2"><div class="font-semibold text-insight-navy text-xs md:text-sm truncate">${escapeHtml(e.name || 'Anonymous')}</div><div class="text-xs text-insight-grey">${escapeHtml(e.grade || 'N/A')}</div></div><div class="text-lg md:text-xl font-bold text-insight-orange flex-shrink-0">${e.score || 0}</div></div></div>`).join('')}</div>` : '<div class="text-center py-4 text-gray-400 text-sm">No entries yet</div>'}</div><div class="bg-green-50 rounded-xl p-4"><h3 class="text-sm md:text-base font-semibold text-insight-navy mb-3">📊 Overall Stats</h3><div class="space-y-2"><div class="flex justify-between p-2 bg-white rounded-lg"><span class="text-xs text-insight-grey">Total Players:</span><span class="font-bold text-insight-navy text-sm">${gameState.leaderboard.length}</span></div><div class="flex justify-between p-2 bg-white rounded-lg"><span class="text-xs text-insight-grey">Avg Score:</span><span class="font-bold text-insight-navy text-sm">${avgScore}</span></div><div class="flex justify-between p-2 bg-white rounded-lg"><span class="text-xs text-insight-grey">Highest Score:</span><span class="font-bold text-insight-orange text-sm">${highScore}</span></div></div></div></div><div class="bg-purple-50 rounded-xl p-3 md:p-4 mb-3"><h3 class="text-sm md:text-base font-semibold text-insight-navy mb-3">📈 Performance by Question</h3><div class="overflow-x-auto"><table class="w-full text-xs"><thead class="bg-white"><tr><th class="px-2 py-2 text-left font-semibold text-insight-navy">Q#</th><th class="px-2 py-2 text-left font-semibold text-insight-navy">Scenario</th><th class="px-2 py-2 text-center font-semibold text-insight-navy">Responses</th><th class="px-2 py-2 text-center font-semibold text-insight-navy">Avg Score</th><th class="px-2 py-2 text-center font-semibold text-insight-navy">High Score</th></tr></thead><tbody>${questionStats.map((stat, idx) => `<tr class="border-t border-purple-100 hover:bg-white"><td class="px-2 py-2 font-bold text-insight-orange">${idx + 1}</td><td class="px-2 py-2 text-insight-navy">${escapeHtml(stat.title)}</td><td class="px-2 py-2 text-center text-insight-grey">${stat.count}</td><td class="px-2 py-2 text-center font-bold text-insight-navy">${stat.avg}</td><td class="px-2 py-2 text-center font-bold text-green-600">${stat.high}</td></tr>`).join('')}</tbody></table></div></div>${gameState.leaderboard.length > 0 ? `<div class="bg-gray-50 rounded-xl p-3"><h2 class="text-sm md:text-base font-semibold text-insight-navy mb-2">📧 All Entries (${gameState.leaderboard.length})</h2><div class="overflow-x-auto"><table class="w-full text-xs"><thead class="bg-white"><tr><th class="px-2 py-2 text-left font-semibold text-insight-navy">#</th><th class="px-2 py-2 text-left font-semibold text-insight-navy">Name</th><th class="px-2 py-2 text-left font-semibold text-insight-navy">Email</th><th class="px-2 py-2 text-left font-semibold text-insight-navy">Score</th><th class="px-2 py-2 text-left font-semibold text-insight-navy">Grade</th><th class="px-2 py-2 text-left font-semibold text-insight-navy">Date</th><th class="px-2 py-2 text-center font-semibold text-insight-navy">Actions</th></tr></thead><tbody>${gameState.leaderboard.map((e, i) => `<tr class="border-t border-gray-200 hover:bg-white"><td class="px-2 py-2"><div class="w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs ${i < 3 ? 'bg-insight-orange text-white' : 'bg-gray-200 text-gray-600'}">${i + 1}</div></td><td class="px-2 py-2 font-semibold text-insight-navy">${escapeHtml(e.name || 'Anonymous')}</td><td class="px-2 py-2 text-insight-grey">${escapeHtml(e.email || 'N/A')}</td><td class="px-2 py-2 font-bold text-insight-orange">${e.score || 0}</td><td class="px-2 py-2 text-insight-grey">${escapeHtml(e.grade || 'N/A')}</td><td class="px-2 py-2 text-insight-grey whitespace-nowrap">${new Date(e.timestamp).toLocaleDateString('en-US', {month: 'short', day: 'numeric'})} ${new Date(e.timestamp).toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit'})}</td><td class="px-2 py-2 text-center"><div class="flex gap-1 justify-center">${e.choices && Array.isArray(e.choices) ? `<button onclick="gameState.viewingPlayerDetails = ${i}; stopAutoRefresh(); render();" class="px-2 py-1 bg-blue-100 hover:bg-blue-200 active:bg-blue-300 text-blue-600 font-semibold rounded text-xs">View</button>` : ''}<button onclick="deleteScore('${e.id}')" class="px-2 py-1 bg-red-100 hover:bg-red-200 active:bg-red-300 text-red-600 font-semibold rounded text-xs">Del</button></div></td></tr>`).join('')}</tbody></table></div></div>` : '<div class="text-center py-8 text-gray-400"><p class="text-sm">No entries yet</p></div>'}</div></div></div>`;
         }
 
         function renderPlayerDetails() {
             const player = gameState.leaderboard[gameState.viewingPlayerDetails];
-            if (!player || !player.choices) {
+            if (!player || !player.choices || !Array.isArray(player.choices)) {
                 gameState.viewingPlayerDetails = null;
                 startAutoRefresh();
                 render();
                 return '';
             }
-            return `<div class="min-h-screen p-3 bg-gradient-to-b from-white to-gray-50"><div class="max-w-3xl mx-auto py-3"><div class="bg-white rounded-2xl shadow-lg p-5"><div class="flex justify-between items-center mb-4"><h1 class="text-xl font-bold text-insight-navy">📊 Player Details</h1><button onclick="gameState.viewingPlayerDetails = null; startAutoRefresh(); render();" class="px-3 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg transition-all text-xs">← Back</button></div><div class="bg-orange-50 rounded-xl p-4 mb-4"><div class="flex justify-between items-center mb-2"><h2 class="text-lg font-bold text-insight-navy">${player.name}</h2><div class="text-2xl font-bold text-insight-orange">${player.score} pts</div></div><div class="flex gap-4 text-sm text-insight-grey"><span><strong>Email:</strong> ${player.email}</span><span><strong>Grade:</strong> ${player.grade}</span><span><strong>Time:</strong> ${formatTime(player.timeUsed || 0)}</span></div><div class="text-xs text-insight-grey mt-1"><strong>Date:</strong> ${new Date(player.timestamp).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})} ${new Date(player.timestamp).toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit'})}</div></div><h3 class="text-base font-semibold text-insight-navy mb-3">Decision Summary</h3><div class="space-y-3">${player.choices.map((choice, idx) => `<div class="bg-gray-50 rounded-xl p-3"><div class="flex justify-between items-start mb-2"><h4 class="font-semibold text-insight-navy text-sm">Scenario ${idx + 1}: ${choice.scenarioTitle}</h4><span class="text-insight-orange font-bold text-sm">+${choice.points} pts</span></div><p class="text-xs text-gray-700 leading-relaxed">${choice.choiceText}</p></div>`).join('')}</div></div></div></div>`;
+            
+            return `<div class="min-h-screen p-3 bg-gradient-to-b from-white to-gray-50 scroll-container"><div class="max-w-3xl mx-auto py-3"><div class="bg-white rounded-2xl shadow-lg p-4 md:p-5"><div class="flex justify-between items-center mb-4"><h1 class="text-lg md:text-xl font-bold text-insight-navy">📊 Player Details</h1><button onclick="gameState.viewingPlayerDetails = null; startAutoRefresh(); render();" class="px-3 py-2 bg-gray-200 hover:bg-gray-300 active:bg-gray-400 text-gray-700 font-semibold rounded-lg transition-all text-xs">← Back</button></div><div class="bg-orange-50 rounded-xl p-3 md:p-4 mb-4"><div class="flex justify-between items-center mb-2"><h2 class="text-base md:text-lg font-bold text-insight-navy truncate mr-2">${escapeHtml(player.name || 'Anonymous')}</h2><div class="text-xl md:text-2xl font-bold text-insight-orange flex-shrink-0">${player.score || 0} pts</div></div><div class="flex flex-wrap gap-3 md:gap-4 text-xs md:text-sm text-insight-grey"><span><strong>Grade:</strong> ${escapeHtml(player.grade || 'N/A')}</span><span><strong>Date:</strong> ${new Date(player.timestamp).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})} ${new Date(player.timestamp).toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit'})}</span></div></div><h3 class="text-sm md:text-base font-semibold text-insight-navy mb-3">Decision Summary</h3><div class="space-y-3">${player.choices.map((choice, idx) => `<div class="bg-gray-50 rounded-xl p-3"><div class="flex justify-between items-start mb-2"><h4 class="font-semibold text-insight-navy text-xs md:text-sm">Scenario ${idx + 1}: ${escapeHtml(choice.scenarioTitle || 'Unknown')}</h4><span class="text-insight-orange font-bold text-xs md:text-sm flex-shrink-0 ml-2">+${choice.points || 0} pts</span></div><p class="text-xs text-gray-700 leading-relaxed">${escapeHtml(choice.choiceText || 'No choice text available')}</p></div>`).join('')}</div></div></div></div>`;
         }
     </script>
 </body>
