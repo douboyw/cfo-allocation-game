@@ -162,6 +162,7 @@
             playerName: '',
             playerEmail: '',
             scoreSaved: false,
+            saveAttempted: false,
             competitionId: 'cfo-summit-2025-TEST',
             isLoading: false,
             metrics: { arr: 50, ebitdaMargin: 50, nrr: 50, multipleExpansion: 50 },
@@ -184,111 +185,131 @@
         const scenarios = [
             {
                 title: "Rule of 40 Optimization",
-                situation: "Your $50M ARR SaaS portfolio company has 25% growth + 10% EBITDA margin (Rule of 35). You have $8M in dry powder. Current NRR is 105%.",
+                situation: "Your $50M ARR SaaS portfolio company has 25% growth + 10% EBITDA margin (Rule of 35) and NRR 105%. You have $8M in dry powder.",
                 choices: [
-                    { text: "Invest $5M in sales & marketing to accelerate growth to 35%", impact: { arr: 20, ebitdaMargin: -15, nrr: 5, multipleExpansion: 15 }, points: 30, feedback: "Excellent! High-growth SaaS commands premium multiples." },
-                    { text: "Cut S&M spend, optimize to 20% EBITDA margin", impact: { arr: -10, ebitdaMargin: 20, nrr: -5, multipleExpansion: -5 }, points: 15, feedback: "Too early for margin harvest." },
-                    { text: "Balance: $3M to sales, $2M to product for upsell", impact: { arr: 10, ebitdaMargin: -5, nrr: 15, multipleExpansion: 20 }, points: 35, feedback: "Strategic! NRR expansion drives durable growth." },
+                    { text: "Invest $5M in sales & marketing to accelerate growth to 35%", impact: { arr: 20, ebitdaMargin: -15, nrr: 5, multipleExpansion: 10 }, points: 30, feedback: "Excellent! High-growth SaaS commands premium multiples." },
+                    { text: "Cut S&M spend, optimize to 20% EBITDA margin", impact: { arr: -10, ebitdaMargin: 20, nrr: -5, multipleExpansion: -10 }, points: 15, feedback: "Too early for margin harvest." },
+                    { text: "Balance: $3M to sales, $2M to product for upsell", impact: { arr: 10, ebitdaMargin: -5, nrr: 15, multipleExpansion: 20 }, points: 35, feedback: "Strategic! Best EV per dollar invested—combines growth, NRR expansion, and multiple uplift." },
                     { text: "Deploy to customer success to protect NRR", impact: { arr: 5, ebitdaMargin: -5, nrr: 10, multipleExpansion: 5 }, points: 20, feedback: "Defensive but 105% NRR is healthy." }
                 ]
             },
             {
                 title: "Add-On Acquisition Decision",
-                situation: "$25M ARR target, 90% NRR, 15% EBITDA margin. Asking 6x ARR ($150M). Your portco is 3x ARR.",
+                situation: "$25M ARR target, 90% NRR, 15% EBITDA margin. Asking 6x ARR ($150M). Your portco is 8× ARR valuation today. Capital structure allows debt or cash financing.",
                 choices: [
                     { text: "Acquire at 5.5x ARR with earnout on NRR improvement", impact: { arr: 25, ebitdaMargin: 5, nrr: 10, multipleExpansion: 20 }, points: 35, feedback: "Smart! Disciplined on price." },
-                    { text: "Pass - focus on organic product roadmap", impact: { arr: 5, ebitdaMargin: 5, nrr: 5, multipleExpansion: 0 }, points: 10, feedback: "Too conservative." },
-                    { text: "Acquire at ask (6x), finance with unitranche debt", impact: { arr: 20, ebitdaMargin: -5, nrr: 5, multipleExpansion: 10 }, points: 20, feedback: "Overpaying impacts fund returns." },
+                    { text: "Pass - focus on organic product roadmap", impact: { arr: 5, ebitdaMargin: 5, nrr: 5, multipleExpansion: 0 }, points: 10, feedback: "Too conservative. Misses scale and multiple expansion." },
+                    { text: "Acquire at ask (6x), finance with unitranche debt", impact: { arr: 20, ebitdaMargin: -5, nrr: 5, multipleExpansion: 10 }, points: 20, feedback: "Overpaying and high leverage impact equity returns." },
                     { text: "Counter at 4.5x ARR, all cash", impact: { arr: 15, ebitdaMargin: 10, nrr: 5, multipleExpansion: 15 }, points: 25, feedback: "Aggressive low-ball may kill deal." }
                 ]
             },
             {
                 title: "SaaS Metrics Trade-Off",
-                situation: "CAC payback period is 18 months, industry best-in-class is 12. You can invest $4M to reduce it.",
+                situation: "CAC payback is 18 months (vs 12-month best-in-class). You can invest $4M to fix it. EBITDA margin 12%, NRR 108%.",
                 choices: [
                     { text: "Invest in CAC payback optimization now", impact: { arr: -5, ebitdaMargin: 15, nrr: 5, multipleExpansion: 15 }, points: 30, feedback: "Right call! Unit economics matter." },
-                    { text: "Maintain pace - optimize post-exit", impact: { arr: 10, ebitdaMargin: -5, nrr: 0, multipleExpansion: -10 }, points: 10, feedback: "Kicking the can." },
-                    { text: "Split approach: optimize enterprise, keep SMB spend high", impact: { arr: 5, ebitdaMargin: 10, nrr: 10, multipleExpansion: 20 }, points: 35, feedback: "Sophisticated!" },
-                    { text: "Double down on growth, ignore payback metrics", impact: { arr: 15, ebitdaMargin: -15, nrr: 0, multipleExpansion: -15 }, points: 5, feedback: "2021 playbook doesn't work anymore." }
+                    { text: "Maintain pace - optimize post-exit", impact: { arr: 10, ebitdaMargin: -5, nrr: 0, multipleExpansion: -10 }, points: 10, feedback: "Kicking the can. Delays value creation and compresses valuation at exit." },
+                    { text: "Split approach: optimize enterprise, keep SMB spend high", impact: { arr: 5, ebitdaMargin: 10, nrr: 10, multipleExpansion: 20 }, points: 35, feedback: "Sophisticated! Balances growth and capital efficiency—highest EV per dollar." },
+                    { text: "Double down on growth, ignore payback metrics", impact: { arr: 15, ebitdaMargin: -15, nrr: 0, multipleExpansion: -15 }, points: 5, feedback: "Investors no longer reward inefficient growth—destroys EV." }
                 ]
             },
             {
                 title: "Portfolio Optimization",
-                situation: "One product line is $15M ARR but dragging down company NRR to 102%.",
+                situation: "One product line is $15M ARR and is pulling overall NRR down to 102% (core product is at 115%). Total ARR is $60M, EBITDA margin is 12%.",
                 choices: [
-                    { text: "Divest and reallocate eng to core product", impact: { arr: -5, ebitdaMargin: 10, nrr: 20, multipleExpansion: 25 }, points: 35, feedback: "Brilliant! Surgical portfolio management." },
+                    { text: "Divest and reallocate eng to core product", impact: { arr: -5, ebitdaMargin: 10, nrr: 20, multipleExpansion: 25 }, points: 35, feedback: "Brilliant! Surgical portfolio management—improves NRR, reallocates capital to high-ROI products, drives multiple expansion." },
                     { text: "Keep - maintain $60M ARR scale threshold", impact: { arr: 0, ebitdaMargin: -5, nrr: -5, multipleExpansion: -10 }, points: 10, feedback: "Scale matters, but not at expense of quality." },
-                    { text: "Harvest mode: minimal investment", impact: { arr: -10, ebitdaMargin: 5, nrr: 0, multipleExpansion: -5 }, points: 15, feedback: "Half measure." },
-                    { text: "Invest $2M to turn around the product", impact: { arr: 0, ebitdaMargin: -10, nrr: -5, multipleExpansion: -10 }, points: 5, feedback: "Throwing good money after bad." }
+                    { text: "Harvest mode: minimal investment", impact: { arr: -10, ebitdaMargin: 5, nrr: 0, multipleExpansion: -5 }, points: 15, feedback: "Half measure—improves margin slightly but does not address retention drag—limited EV creation." },
+                    { text: "Invest $2M to turn around the product", impact: { arr: 0, ebitdaMargin: -10, nrr: -5, multipleExpansion: -10 }, points: 5, feedback: "Throwing good money after bad—fixing a structurally weak product instead of funding higher-return engines." }
                 ]
             },
             {
-                title: "Pre-Exit Strategy",
+                title: "AI Value Creation",
+                situation: "Your $60M ARR SaaS company has 15% EBITDA, 108% NRR. You spend $12M/year on G&A, finance, RevOps, and support. A $5M AI initiative could: (1) automate 20% of back-office work (cost savings), (2) build AI-driven upsell/pricing engine (revenue/NRR expansion), or (3) capitalize software to increase EBITDA margin optics. Which creates the most enterprise value over 24 months?",
+                choices: [
+                    { text: "Use AI to automate finance/support, cut $3M annual cost", impact: { arr: 0, ebitdaMargin: 5, nrr: 0, multipleExpansion: 5 }, points: 25, feedback: "Good EBITDA lift, but limited multiple expansion—seen as efficiency only." },
+                    { text: "Build AI revenue engine for upsell & pricing", impact: { arr: 8, ebitdaMargin: -2, nrr: 7, multipleExpansion: 20 }, points: 35, feedback: "Highest EV—improves NRR, upsell, and valuation multiple." },
+                    { text: "Capitalize AI investment as software to boost EBITDA", impact: { arr: 0, ebitdaMargin: 3, nrr: 0, multipleExpansion: 0 }, points: 15, feedback: "Improves accounting metrics only—no real EV change." },
+                    { text: "Do nothing—wait until AI matures", impact: { arr: 3, ebitdaMargin: 0, nrr: 0, multipleExpansion: -5 }, points: 5, feedback: "Too passive—misses competitive and valuation advantage." }
+                ]
+            },
+            {
+                title: "Pre-Exit EV Maximization",
                 situation: "18 months to exit. $100M ARR, 25% EBITDA margin, 110% NRR.",
                 choices: [
-                    { text: "Push to $140M ARR (maximize top-line)", impact: { arr: 25, ebitdaMargin: -10, nrr: 5, multipleExpansion: 15 }, points: 30, feedback: "Strong! $140M ARR crosses key threshold." },
-                    { text: "Optimize to 28% EBITDA (margin focus)", impact: { arr: 10, ebitdaMargin: 15, nrr: 0, multipleExpansion: 10 }, points: 25, feedback: "Solid execution story." },
-                    { text: "Balanced: $130M ARR at 23% EBITDA", impact: { arr: 15, ebitdaMargin: 5, nrr: 5, multipleExpansion: 20 }, points: 35, feedback: "Goldilocks! Rule of 45+." },
-                    { text: "Invest in non-organic product expansion", impact: { arr: 10, ebitdaMargin: -15, nrr: 0, multipleExpansion: -10 }, points: 10, feedback: "Too risky 18 months from exit." }
+                    { text: "Push to $140M ARR (maximize top-line)", impact: { arr: 25, ebitdaMargin: -10, nrr: 5, multipleExpansion: 15 }, points: 30, feedback: "Strong revenue story but margin erosion reduces EV efficiency." },
+                    { text: "Optimize to 28% EBITDA (margin focus)", impact: { arr: 10, ebitdaMargin: 15, nrr: 0, multipleExpansion: 10 }, points: 25, feedback: "Solid execution story. Improves profitability but sacrifices valuation multiple and scale." },
+                    { text: "Balanced: $130M ARR at 23% EBITDA", impact: { arr: 15, ebitdaMargin: 5, nrr: 5, multipleExpansion: 20 }, points: 35, feedback: "Goldilocks! Best exit EV—balances growth, margin, and NRR to expand valuation multiple." },
+                    { text: "Invest in non-organic product expansion", impact: { arr: 10, ebitdaMargin: -15, nrr: 0, multipleExpansion: -10 }, points: 10, feedback: "Payback uncertainty too close to exit—EV dilutive." }
                 ]
             },
             {
                 title: "Platform vs Tuck-In Strategy",
-                situation: "You have $20M for M&A. Option A: $15M ARR platform at 5x. Option B: Two $5M ARR tuck-ins at 3x each.",
+                situation: "You have $20M for M&A. Option A: $15M ARR platform at 5x. Option B: Two $5M ARR tuck-ins at 3x each. Current company multiple is 8× ARR.",
                 choices: [
-                    { text: "Buy the platform - bigger is better", impact: { arr: 20, ebitdaMargin: -10, nrr: 0, multipleExpansion: 15 }, points: 25, feedback: "Bold but 5x is expensive." },
-                    { text: "Two tuck-ins - faster integration", impact: { arr: 15, ebitdaMargin: 5, nrr: 10, multipleExpansion: 20 }, points: 35, feedback: "Smart! Better value at 3x." },
-                    { text: "One tuck-in + $10M in organic sales", impact: { arr: 20, ebitdaMargin: 0, nrr: 15, multipleExpansion: 25 }, points: 30, feedback: "Balanced approach!" },
-                    { text: "Pass on both - organic only", impact: { arr: 5, ebitdaMargin: 5, nrr: 5, multipleExpansion: -10 }, points: 10, feedback: "PE playbook requires inorganic." }
+                    { text: "Buy the platform - bigger is better", impact: { arr: 20, ebitdaMargin: -10, nrr: 0, multipleExpansion: 15 }, points: 25, feedback: "Bold but 5x is expensive. Adds scale but limited multiple arbitrage—high purchase price and integration risk." },
+                    { text: "Two tuck-ins - faster integration", impact: { arr: 15, ebitdaMargin: 5, nrr: 10, multipleExpansion: 20 }, points: 35, feedback: "Smart! Better value at 3x—lower entry multiple, easier integration, improves NRR and margin." },
+                    { text: "One tuck-in + $10M in organic sales", impact: { arr: 20, ebitdaMargin: 0, nrr: 15, multipleExpansion: 25 }, points: 30, feedback: "Balanced approach! Strong mix of inorganic scale and organic differentiation—high synergy and multiple expansion potential." },
+                    { text: "Pass on both - organic only", impact: { arr: 5, ebitdaMargin: 5, nrr: 5, multipleExpansion: -10 }, points: 10, feedback: "Too conservative—misses value creation from scale and M&A arbitrage." }
                 ]
             },
             {
-                title: "Pricing Strategy Overhaul",
-                situation: "$40M ARR, average deal size $25K. Sales cycle is 6 months. Competitor just launched usage-based pricing capturing mid-market.",
+                title: "Pricing Strategy – Value Creation via Revenue Quality",
+                situation: "$40M ARR, average deal size $25K. Sales cycle is 6 months. Competitor just launched usage-based pricing capturing mid-market. You must decide which pricing model creates the most enterprise value by improving revenue quality, NRR, and valuation multiple.",
                 choices: [
-                    { text: "Launch usage-based tier to compete mid-market", impact: { arr: 15, ebitdaMargin: -5, nrr: 10, multipleExpansion: 20 }, points: 35, feedback: "Modern monetization! Expands TAM." },
-                    { text: "Double down on enterprise: raise prices 20%", impact: { arr: -5, ebitdaMargin: 15, nrr: -10, multipleExpansion: 5 }, points: 20, feedback: "Risky in competitive market." },
-                    { text: "Introduce good-better-best packaging", impact: { arr: 10, ebitdaMargin: 5, nrr: 15, multipleExpansion: 25 }, points: 30, feedback: "Smart! Drives upsell motion." },
-                    { text: "Maintain current model, invest in sales velocity", impact: { arr: 5, ebitdaMargin: -10, nrr: 0, multipleExpansion: -5 }, points: 10, feedback: "Ignoring market shift." }
+                    { text: "Launch usage-based tier to compete mid-market", impact: { arr: 15, ebitdaMargin: -5, nrr: 10, multipleExpansion: 20 }, points: 35, feedback: "Drives higher NRR, improves revenue quality, and increases valuation multiple." },
+                    { text: "Double down on enterprise: raise prices 20%", impact: { arr: -5, ebitdaMargin: 15, nrr: -10, multipleExpansion: 5 }, points: 20, feedback: "Risky in competitive market. Boosts ACV near term but increases churn risk—mixed EV impact." },
+                    { text: "Introduce good-better-best packaging", impact: { arr: 10, ebitdaMargin: 5, nrr: 15, multipleExpansion: 15 }, points: 30, feedback: "Smart! Improves ACV and retention without disrupting model—solid EV creation." },
+                    { text: "Maintain current model, invest in sales velocity", impact: { arr: 5, ebitdaMargin: -10, nrr: 0, multipleExpansion: -5 }, points: 10, feedback: "Focuses only on top-line without improving quality of revenue or EV multiple." }
+                ]
+            },
+            {
+                title: "Debt Refinancing and Cost of Capital Optimization",
+                situation: "You have a $30M term loan at 7% fixed interest, maturing in 18 months. SOFR/floating rates are now 9%+. You currently hold $20M in cash, leverage is 3.0× EBITDA, and an exit or recap is expected in 12–15 months. Decision: reduce debt, refinance, or raise equity.",
+                choices: [
+                    { text: "Refinance now at 8.5%, extend maturity to 5 years", impact: { arr: 5, ebitdaMargin: -1, nrr: 0, multipleExpansion: 10 }, points: 35, feedback: "Locks in runway certainty and removes refinancing risk, supporting valuation optics ahead of exit. Although costly near-term, it signals balance-sheet stability to buyers." },
+                    { text: "Pay down $15M debt from cash reserves", impact: { arr: 3, ebitdaMargin: 1, nrr: 0, multipleExpansion: 3 }, points: 20, feedback: "De-risks leverage and modestly improves multiples, but constrains flexibility and reduces optionality for growth or M&A before exit." },
+                    { text: "Raise equity to pay off debt (2% dilution)", impact: { arr: 5, ebitdaMargin: 0, nrr: 0, multipleExpansion: 0 }, points: 10, feedback: "Clean balance sheet but dilutive—destroys value per share." },
+                    { text: "Do nothing—keep debt, wait", impact: { arr: 5, ebitdaMargin: 1, nrr: 0, multipleExpansion: 5 }, points: 25, feedback: "Given the short exit horizon and fixed rate, maintaining the current structure is prudent. Avoids locking in higher rates or reducing cash reserves, provided covenants remain in check." }
                 ]
             },
             {
                 title: "Churn Crisis Management",
-                situation: "Logo churn spiked from 8% to 14% annually. Product NPS dropped 15 points. $3M available for intervention.",
+                situation: "Logo churn spiked from 8% to 14% annually. Product NPS dropped 15 points. $3M available for intervention. NRR is down to 98%, and valuation multiple is declining—investors see retention as the biggest driver of enterprise value.",
                 choices: [
-                    { text: "Emergency product fixes: hire eng team, 6-month sprint", impact: { arr: -10, ebitdaMargin: -15, nrr: 20, multipleExpansion: 15 }, points: 30, feedback: "Addressing root cause!" },
-                    { text: "Build out customer success org immediately", impact: { arr: 0, ebitdaMargin: -10, nrr: 15, multipleExpansion: 10 }, points: 25, feedback: "Helpful but not solving product issues." },
-                    { text: "Aggressive win-back campaign with discounts", impact: { arr: 5, ebitdaMargin: -15, nrr: -5, multipleExpansion: -10 }, points: 10, feedback: "Band-aid on broken product." },
-                    { text: "Both: $2M product, $1M CSM team", impact: { arr: -5, ebitdaMargin: -10, nrr: 25, multipleExpansion: 20 }, points: 35, feedback: "Comprehensive fix! Product + support." }
+                    { text: "Emergency product fixes: hire eng team, 6-month sprint", impact: { arr: -10, ebitdaMargin: -15, nrr: 20, multipleExpansion: 15 }, points: 30, feedback: "Addresses product issues, improves long-term NRR and stabilizes revenue—but slower EV recovery." },
+                    { text: "Build out customer success org immediately", impact: { arr: 0, ebitdaMargin: -10, nrr: 15, multipleExpansion: 10 }, points: 25, feedback: "Helpful but not solving product issues. Reduces churn quickly but does not fix root problem—short-term EV protection." },
+                    { text: "Aggressive win-back campaign with discounts", impact: { arr: 5, ebitdaMargin: -15, nrr: -5, multipleExpansion: -10 }, points: 10, feedback: "Hurts profitability and trains customers to expect discounts—EV negative." },
+                    { text: "Both: $2M product, $1M CSM team", impact: { arr: -5, ebitdaMargin: -10, nrr: 25, multipleExpansion: 20 }, points: 35, feedback: "Best outcome—fixes root cause and protects existing revenue base." }
                 ]
             },
             {
                 title: "International Expansion Decision",
-                situation: "European demand signal strong. $5M to localize and build EMEA team. Current: 100% North America, $60M ARR.",
+                situation: "European demand signal strong. $5M needed for localization and EMEA GTM. Current: 100% North America, $60M ARR, 12% EBITDA, 110% NRR.",
                 choices: [
-                    { text: "Full commitment: $5M EMEA build-out now", impact: { arr: 20, ebitdaMargin: -15, nrr: 5, multipleExpansion: 25 }, points: 30, feedback: "Bold! Global footprint increases valuation." },
-                    { text: "Pilot: $1M, test with remote AEs first", impact: { arr: 10, ebitdaMargin: -5, nrr: 5, multipleExpansion: 15 }, points: 35, feedback: "Disciplined expansion! De-risks investment." },
-                    { text: "Partner-led: find EMEA reseller, defer investment", impact: { arr: 5, ebitdaMargin: 5, nrr: 0, multipleExpansion: 5 }, points: 20, feedback: "Lower risk but limited upside." },
+                    { text: "Full commitment: $5M EMEA build-out now", impact: { arr: 20, ebitdaMargin: -15, nrr: 5, multipleExpansion: 25 }, points: 30, feedback: "Bold! Expands TAM, boosts EV, but high near-term margin drag." },
+                    { text: "Pilot: $1M, test with remote AEs first", impact: { arr: 10, ebitdaMargin: -5, nrr: 5, multipleExpansion: 15 }, points: 35, feedback: "Disciplined expansion! Testing upside while preserving profitability." },
+                    { text: "Partner-led: find EMEA reseller, defer investment", impact: { arr: 5, ebitdaMargin: 5, nrr: 0, multipleExpansion: 5 }, points: 20, feedback: "Low-risk, but limited upside and minimal valuation uplift." },
                     { text: "Pass - focus on penetrating existing markets", impact: { arr: 10, ebitdaMargin: 10, nrr: 10, multipleExpansion: -5 }, points: 25, feedback: "Safe but missing growth opportunity." }
                 ]
             },
             {
                 title: "Post-Acquisition Integration",
-                situation: "Just closed $30M ARR acquisition. Overlapping products, duplicate teams. Integration budget: $4M. Target margin drag: 10% for 12 months.",
+                situation: "Just closed $30M ARR acquisition. Overlapping products, duplicate teams. Integration budget $4M and $6M net synergies identified.",
                 choices: [
-                    { text: "Aggressive: Merge platforms immediately, cut 40% of combined team", impact: { arr: -10, ebitdaMargin: 20, nrr: -15, multipleExpansion: 5 }, points: 15, feedback: "Too fast - execution risk high." },
-                    { text: "Gradual: 18-month integration, retain both teams initially", impact: { arr: 5, ebitdaMargin: -5, nrr: 10, multipleExpansion: 15 }, points: 25, feedback: "Safer but expensive." },
+                    { text: "Aggressive: Merge platforms immediately, cut 40% of combined team", impact: { arr: -10, ebitdaMargin: 20, nrr: -15, multipleExpansion: 5 }, points: 15, feedback: "Saves cost but risks churn and execution failures—EV destruction likely." },
+                    { text: "Gradual: 18-month integration, retain both teams initially", impact: { arr: 5, ebitdaMargin: -5, nrr: 10, multipleExpansion: 15 }, points: 25, feedback: "Safe but delays value capture." },
                     { text: "Hybrid: Sunset weaker product in 6 months, strategic retention", impact: { arr: 15, ebitdaMargin: 10, nrr: 5, multipleExpansion: 25 }, points: 35, feedback: "Balanced! Minimize disruption, capture synergies." },
-                    { text: "Keep separate: Run as independent BU", impact: { arr: 10, ebitdaMargin: -10, nrr: 0, multipleExpansion: -10 }, points: 10, feedback: "Defeats purpose of acquisition." }
+                    { text: "Keep separate: Run as independent BU", impact: { arr: 10, ebitdaMargin: -10, nrr: 0, multipleExpansion: -10 }, points: 10, feedback: "No synergies realized. Defeats purpose of acquisition." }
                 ]
             }
         ];
 
         function getGrade(score) {
-            if (score >= 320) return { grade: 'A+', title: 'SaaS PE Master CFO', color: 'text-insight-orange' };
-            if (score >= 280) return { grade: 'A', title: 'Top Quartile Performer', color: 'text-insight-navy' };
-            if (score >= 240) return { grade: 'B+', title: 'Solid PE Operator', color: 'text-insight-grey' };
-            if (score >= 200) return { grade: 'B', title: 'Building Expertise', color: 'text-insight-navy' };
+            if (score >= 385) return { grade: 'A+', title: 'SaaS PE Master CFO', color: 'text-insight-orange' };
+            if (score >= 336) return { grade: 'A', title: 'Top Quartile Performer', color: 'text-insight-navy' };
+            if (score >= 288) return { grade: 'B+', title: 'Solid PE Operator', color: 'text-insight-grey' };
+            if (score >= 240) return { grade: 'B', title: 'Building Expertise', color: 'text-insight-navy' };
             return { grade: 'C', title: 'Keep Learning', color: 'text-insight-grey' };
         }
 
@@ -300,11 +321,16 @@
             try {
                 gameState.isLoading = true;
                 render();
+                
+                console.log('Loading leaderboard for competition:', gameState.competitionId);
+                
                 const snapshot = await window.db
                     .collection('competitions')
                     .doc(gameState.competitionId)
                     .collection('scores')
                     .get();
+                
+                console.log('Leaderboard loaded, entries:', snapshot.size);
                 
                 gameState.leaderboard = [];
                 snapshot.forEach(doc => gameState.leaderboard.push({ id: doc.id, ...doc.data() }));
@@ -324,9 +350,11 @@
                 gameState.leaderboard = gameState.leaderboard.slice(0, 100);
                 
                 gameState.lastRefreshTime = Date.now();
+                console.log('Leaderboard sorted, top 3:', gameState.leaderboard.slice(0, 3).map(e => ({name: e.name, score: e.score})));
             } catch (error) {
                 console.error('Error loading leaderboard:', error);
-                alert('⚠️ Failed to load leaderboard. Please try again.');
+                console.error('Error details:', error.message, error.code);
+                // Don't show alert, just log the error
             } finally {
                 gameState.isLoading = false;
                 render();
@@ -335,8 +363,15 @@
 
         async function saveScore() {
             const name = gameState.playerName.trim();
+            
+            // Prevent duplicate saves
+            if (gameState.scoreSaved || gameState.isLoading) {
+                console.log('Save already in progress or completed');
+                return;
+            }
+            
             if (!name || !window.db) {
-                alert('⚠️ Please enter your name');
+                console.error('Save score failed: missing name or database');
                 return;
             }
             
@@ -347,6 +382,7 @@
 
             try {
                 gameState.isLoading = true;
+                gameState.saveAttempted = true;
                 render();
                 
                 // Calculate game duration in seconds
@@ -362,17 +398,45 @@
                     competitionId: gameState.competitionId,
                     choices: gameState.playerChoices
                 };
-                await window.db
-                    .collection('competitions')
-                    .doc(gameState.competitionId)
-                    .collection('scores')
-                    .add(entry);
+                
+                console.log('Attempting to save score:', entry);
+                
+                // Try to save with retry logic
+                let retries = 3;
+                let saved = false;
+                let lastError = null;
+                
+                while (retries > 0 && !saved) {
+                    try {
+                        await window.db
+                            .collection('competitions')
+                            .doc(gameState.competitionId)
+                            .collection('scores')
+                            .add(entry);
+                        saved = true;
+                        console.log('Score saved successfully');
+                    } catch (err) {
+                        lastError = err;
+                        retries--;
+                        console.error(`Save attempt failed (${3 - retries}/3):`, err);
+                        if (retries > 0) {
+                            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
+                        }
+                    }
+                }
+                
+                if (!saved) {
+                    throw lastError || new Error('Failed to save score after 3 attempts');
+                }
                 
                 gameState.scoreSaved = true;
                 await loadLeaderboard();
             } catch (error) {
                 console.error('Error saving score:', error);
-                alert('⚠️ Failed to save score. Please try again.');
+                // Show user-friendly error message but don't block the UI
+                gameState.scoreSaved = false;
+                gameState.saveAttempted = false; // Allow retry on error
+                render();
             } finally {
                 gameState.isLoading = false;
                 render();
@@ -460,8 +524,8 @@
                     // Auto-finish game when time runs out
                     gameState.screen = 'results';
                     render();
-                    // Auto-save score when time expires (only if not already saved/saving)
-                    if (!gameState.scoreSaved && !gameState.isLoading && gameState.playerName && gameState.playerEmail) {
+                    // Auto-save score when time expires (only if not already saved/saving/attempted)
+                    if (!gameState.scoreSaved && !gameState.saveAttempted && !gameState.isLoading && gameState.playerName && gameState.playerEmail) {
                         setTimeout(() => saveScore(), 500);
                     }
                     loadLeaderboard();
@@ -482,8 +546,8 @@
                         gameState.endedByTime = true;
                         gameState.screen = 'results';
                         render();
-                        // Auto-save score when time expires (only if not already saved/saving)
-                        if (!gameState.scoreSaved && !gameState.isLoading && gameState.playerName && gameState.playerEmail) {
+                        // Auto-save score when time expires (only if not already saved/saving/attempted)
+                        if (!gameState.scoreSaved && !gameState.saveAttempted && !gameState.isLoading && gameState.playerName && gameState.playerEmail) {
                             setTimeout(() => saveScore(), 500);
                         }
                         loadLeaderboard();
@@ -641,6 +705,7 @@
                 playerName: '',
                 playerEmail: '',
                 scoreSaved: false,
+                saveAttempted: false,
                 competitionId: 'cfo-summit-2025-TEST',
                 isLoading: false,
                 metrics: { arr: 50, ebitdaMargin: 50, nrr: 50, multipleExpansion: 50 },
@@ -816,7 +881,7 @@
         }
 
         function renderWelcome() {
-            return `<div class="min-h-screen p-4 flex items-center justify-center bg-gradient-to-br from-insight-navy via-insight-grey to-insight-orange"><div class="max-w-3xl w-full bg-white rounded-3xl shadow-2xl p-6 md:p-8 animate-scaleIn"><div class="text-center mb-6 md:mb-8"><div class="relative inline-block mb-4 md:mb-6"><div class="absolute inset-0 bg-insight-orange blur-2xl opacity-50 animate-pulse"></div><div class="relative bg-gradient-to-r from-insight-orange to-red-600 p-4 md:p-6 rounded-2xl"><svg class="w-16 h-16 md:w-20 md:h-20 text-white mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg></div></div><h1 class="text-3xl md:text-5xl font-bold text-insight-navy mb-3 md:mb-4 leading-tight">Welcome to<br/>The Allocation Game</h1><p class="text-xl md:text-2xl text-insight-orange font-semibold mb-2">CFO Summit 2025</p><p class="text-base md:text-lg text-gray-600 max-w-2xl mx-auto">Put your SaaS PE strategy skills to the test! Face 10 real-world scenarios and compete for the top spot.</p></div><div class="bg-gradient-to-r from-orange-50 to-blue-50 rounded-2xl p-4 md:p-6 mb-6 md:mb-8"><div class="flex items-start gap-3 md:gap-4"><div class="flex-shrink-0"><div class="w-10 h-10 md:w-12 md:h-12 bg-insight-orange rounded-full flex items-center justify-center"><span class="text-xl md:text-2xl">🎯</span></div></div><div class="flex-1"><h2 class="text-lg md:text-xl font-bold text-insight-navy mb-2 md:mb-3">What You'll Do:</h2><ul class="space-y-2 text-sm md:text-base text-gray-700"><li class="flex items-start gap-2"><span class="text-insight-orange font-bold mt-1">•</span><span>Navigate <strong>10 challenging scenarios</strong> from M&A to pricing strategy</span></li><li class="flex items-start gap-2"><span class="text-insight-orange font-bold mt-1">•</span><span>Make <strong>CFO-level decisions</strong> that impact ARR, margins, and valuations</span></li><li class="flex items-start gap-2"><span class="text-insight-orange font-bold mt-1">•</span><span>Compete for <strong>top 3 placement</strong> on the leaderboard</span></li><li class="flex items-start gap-2"><span class="text-insight-orange font-bold mt-1">•</span><span>Get <strong>expert feedback</strong> on every choice you make</span></li><li class="flex items-start gap-2"><span class="text-insight-orange font-bold mt-1">•</span><span>Complete in <strong>5 minutes</strong> - test your decision-making speed!</span></li></ul></div></div></div><div class="bg-gray-50 rounded-2xl p-4 md:p-6 mb-6 md:mb-8 border border-gray-200"><h3 class="text-xs md:text-sm font-bold text-insight-navy mb-2 md:mb-3 flex items-center gap-2"><svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg> Privacy & Data Use</h3><div class="text-xs leading-relaxed text-gray-600 space-y-1.5 md:space-y-2"><p>• We collect your <strong>name and email</strong> to personalize your experience and allow you to save your score.</p><p>• Your <strong>game results are temporary</strong> and used only for the duration of this competition.</p><p>• We <strong>do not share individual results</strong> except for displaying the <strong>top 3 performers</strong> on the leaderboard.</p><p>• Your email will not be shared with third parties or used for marketing without your consent.</p><p>• Competition data will be deleted after the CFO Summit 2025 concludes.</p></div></div><button onclick="gameState.screen = 'intro'; render();" class="w-full bg-gradient-to-r from-insight-orange to-red-600 hover:from-red-600 hover:to-insight-orange text-white font-bold py-4 md:py-5 px-8 md:px-10 rounded-2xl text-xl md:text-2xl shadow-2xl transition-all transform hover:scale-105 active:scale-95 relative overflow-hidden group">
+            return `<div class="min-h-screen p-4 flex items-center justify-center bg-gradient-to-br from-insight-navy via-insight-grey to-insight-orange"><div class="max-w-3xl w-full bg-white rounded-3xl shadow-2xl p-6 md:p-8 animate-scaleIn"><div class="text-center mb-6 md:mb-8"><div class="relative inline-block mb-4 md:mb-6"><div class="absolute inset-0 bg-insight-orange blur-2xl opacity-50 animate-pulse"></div><div class="relative bg-gradient-to-r from-insight-orange to-red-600 p-4 md:p-6 rounded-2xl"><svg class="w-16 h-16 md:w-20 md:h-20 text-white mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg></div></div><h1 class="text-3xl md:text-5xl font-bold text-insight-navy mb-3 md:mb-4 leading-tight">Welcome to<br/>The Allocation Game</h1><p class="text-xl md:text-2xl text-insight-orange font-semibold mb-2">CFO Summit 2025</p><p class="text-base md:text-lg text-gray-600 max-w-2xl mx-auto">Put your SaaS PE strategy skills to the test! Face 10 real-world scenarios and compete for the top spot.</p></div><div class="bg-gradient-to-r from-orange-50 to-blue-50 rounded-2xl p-4 md:p-6 mb-6 md:mb-8"><div class="flex items-start gap-3 md:gap-4"><div class="flex-shrink-0"><div class="w-10 h-10 md:w-12 md:h-12 bg-insight-orange rounded-full flex items-center justify-center"><span class="text-xl md:text-2xl">🎯</span></div></div><div class="flex-1"><h2 class="text-lg md:text-xl font-bold text-insight-navy mb-2 md:mb-3">What You'll Do:</h2><ul class="space-y-2 text-sm md:text-base text-gray-700"><li class="flex items-start gap-2"><span class="text-insight-orange font-bold mt-1">•</span><span>Navigate <strong>12 challenging scenarios</strong> from M&A to pricing strategy</span></li><li class="flex items-start gap-2"><span class="text-insight-orange font-bold mt-1">•</span><span>Make <strong>CFO-level decisions</strong> that impact ARR, margins, and valuations</span></li><li class="flex items-start gap-2"><span class="text-insight-orange font-bold mt-1">•</span><span>Compete for <strong>top 3 placement</strong> on the leaderboard</span></li><li class="flex items-start gap-2"><span class="text-insight-orange font-bold mt-1">•</span><span>Get <strong>expert feedback</strong> on every choice you make</span></li><li class="flex items-start gap-2"><span class="text-insight-orange font-bold mt-1">•</span><span>Complete in <strong>5 minutes</strong> - test your decision-making speed!</span></li></ul></div></div></div><div class="bg-gray-50 rounded-2xl p-4 md:p-6 mb-6 md:mb-8 border border-gray-200"><h3 class="text-xs md:text-sm font-bold text-insight-navy mb-2 md:mb-3 flex items-center gap-2"><svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg> Privacy & Data Use</h3><div class="text-xs leading-relaxed text-gray-600 space-y-1.5 md:space-y-2"><p>• We collect your <strong>name and email</strong> to personalize your experience and allow you to save your score.</p><p>• Your <strong>game results are temporary</strong> and used only for the duration of this competition.</p><p>• We <strong>do not share individual results</strong> except for displaying the <strong>top 3 performers</strong> on the leaderboard.</p><p>• Your email will not be shared with third parties or used for marketing without your consent.</p><p>• Competition data will be deleted after the CFO Summit 2025 concludes.</p></div></div><button onclick="gameState.screen = 'intro'; render();" class="w-full bg-gradient-to-r from-insight-orange to-red-600 hover:from-red-600 hover:to-insight-orange text-white font-bold py-4 md:py-5 px-8 md:px-10 rounded-2xl text-xl md:text-2xl shadow-2xl transition-all transform hover:scale-105 active:scale-95 relative overflow-hidden group border-4 border-white ring-4 ring-white/50">
                     <span class="relative z-10 flex items-center justify-center gap-3">
                         <svg class="w-8 h-8 md:w-10 md:h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
@@ -832,13 +897,13 @@
         }
 
         function renderIntro() {
-            return `<div class="min-h-screen p-3 flex items-center justify-center bg-gradient-to-b from-white to-gray-50"><div class="max-w-xl w-full bg-white rounded-2xl shadow-lg p-5 relative"><button onclick="gameState.screen = 'welcome'; render();" class="absolute top-3 left-3 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-600 font-semibold rounded-lg transition-all text-xs flex items-center gap-1"><span>←</span> Back</button><div class="text-center mb-5 pt-10"><div class="bg-insight-orange p-3 rounded-xl inline-block mb-3"><svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div><h1 class="text-xl md:text-2xl font-bold text-insight-navy mb-1">The Allocation Game</h1><p class="text-sm md:text-base text-insight-grey">CFO Summit 2025</p></div><div class="bg-blue-50 rounded-xl p-4 mb-4"><h3 class="text-sm md:text-base font-bold text-insight-navy mb-3">Enter Your Details to Begin</h3><div class="space-y-3"><div><label class="block text-xs font-semibold text-insight-navy mb-2">Your Name *</label><input type="text" id="playerName" placeholder="Enter your name" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 focus:border-insight-orange focus:ring-2 focus:ring-insight-orange focus:ring-opacity-20 focus:outline-none text-base font-medium" maxlength="50" required/></div><div><label class="block text-xs font-semibold text-insight-navy mb-2">Your Email Address *</label><input type="email" id="playerEmail" placeholder="your@email.com" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 focus:border-insight-orange focus:ring-2 focus:ring-insight-orange focus:ring-opacity-20 focus:outline-none text-base font-medium" required/></div></div></div><button onclick="startGameFromIntro()" class="w-full bg-insight-orange hover:opacity-90 active:scale-95 text-white font-semibold py-3 px-5 rounded-xl text-base shadow-sm transition-all mb-4">Begin Challenge</button><div class="border-t border-gray-200 pt-4"><div class="bg-gray-50 rounded-xl p-3"><label class="block text-xs font-semibold text-insight-navy mb-2">🔒 Admin Access</label><div class="flex gap-2"><input type="password" id="adminPasscodeInput" placeholder="Enter passcode..." class="flex-1 px-3 py-2.5 rounded-lg border border-gray-200 focus:border-insight-orange focus:ring-2 focus:ring-insight-orange focus:ring-opacity-20 focus:outline-none text-base" onkeypress="if(event.key === 'Enter') checkAdminFromIntro()"/><button onclick="checkAdminFromIntro()" class="px-4 py-2.5 bg-insight-navy hover:opacity-90 active:scale-95 text-white font-semibold rounded-lg transition-all text-sm">Enter</button></div></div></div></div></div>`;
+            return `<div class="min-h-screen p-3 flex items-center justify-center bg-gradient-to-b from-white to-gray-50"><div class="max-w-xl w-full bg-white rounded-2xl shadow-lg p-5 relative"><button onclick="gameState.screen = 'welcome'; render();" class="absolute top-3 left-3 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-600 font-semibold rounded-lg transition-all text-xs flex items-center gap-1"><span>←</span> Back</button><div class="text-center mb-5 pt-10"><div class="bg-insight-orange p-3 rounded-xl inline-block mb-3"><svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div><h1 class="text-xl md:text-2xl font-bold text-insight-navy mb-1">The Allocation Game</h1><p class="text-sm md:text-base text-insight-grey">CFO Summit 2025</p></div><div class="bg-blue-50 rounded-xl p-4 mb-4"><h3 class="text-sm md:text-base font-bold text-insight-navy mb-3">Enter Your Details to Begin</h3><div class="space-y-3"><div><label class="block text-xs font-semibold text-insight-navy mb-2">Your Name *</label><input type="text" id="playerName" placeholder="Enter your name" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 focus:border-insight-orange focus:ring-2 focus:ring-insight-orange focus:ring-opacity-20 focus:outline-none text-base font-medium" maxlength="50" required/></div><div><label class="block text-xs font-semibold text-insight-navy mb-2">Your Email Address *</label><input type="email" id="playerEmail" placeholder="your@email.com" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 focus:border-insight-orange focus:ring-2 focus:ring-insight-orange focus:ring-opacity-20 focus:outline-none text-base font-medium" required/></div></div></div><button onclick="startGameFromIntro()" class="w-full bg-insight-orange hover:opacity-90 active:scale-95 text-white font-semibold py-3 px-5 rounded-xl text-base shadow-sm transition-all mb-4">Begin Challenge</button><div class="border-t border-gray-200 pt-4"><div class="bg-gray-50 rounded-xl p-3"><label class="block text-xs font-semibold text-insight-navy mb-2">🔒 Admin Access</label><div class="flex gap-2"><div class="relative flex-1"><input type="password" id="adminPasscodeInput" placeholder="Enter passcode..." class="w-full px-3 py-2.5 pr-10 rounded-lg border border-gray-200 focus:border-insight-orange focus:ring-2 focus:ring-insight-orange focus:ring-opacity-20 focus:outline-none text-base" onkeypress="if(event.key === 'Enter') checkAdminFromIntro()"/><button onclick="const inp = document.getElementById('adminPasscodeInput'); inp.type = inp.type === 'password' ? 'text' : 'password'; this.textContent = inp.type === 'password' ? '👁️' : '🔒';" class="absolute right-2 top-1/2 -translate-y-1/2 text-lg hover:opacity-70" type="button">👁️</button></div><button onclick="checkAdminFromIntro()" class="px-4 py-2.5 bg-insight-navy hover:opacity-90 active:scale-95 text-white font-semibold rounded-lg transition-all text-sm">Enter</button></div></div></div></div></div>`;
         }
 
         function renderGame() {
             const s = scenarios[gameState.round];
             const timerColor = gameState.timeRemaining <= 60 ? 'text-red-600' : gameState.timeRemaining <= 120 ? 'text-orange-600' : 'text-insight-navy';
-            return `<div class="min-h-screen p-3 bg-gradient-to-b from-white to-gray-50"><div class="max-w-3xl mx-auto py-3"><div class="bg-white rounded-2xl shadow-sm p-4 mb-3"><div class="flex justify-between items-start mb-2"><div class="flex-1"><h2 class="text-base md:text-lg font-bold text-insight-navy mb-1">Scenario ${gameState.round + 1} of 10</h2><p class="text-insight-orange font-semibold text-sm md:text-base">${gameState.score} points</p></div><div class="text-right"><div class="text-xs text-insight-grey mb-1">Time Remaining</div><div class="text-2xl font-bold ${timerColor}">${formatTime(gameState.timeRemaining)}</div></div></div><div class="w-full bg-gray-100 rounded-full h-2"><div class="bg-gradient-to-r from-insight-orange to-insight-navy h-2 rounded-full transition-all" style="width: ${((gameState.round + 1) / 10) * 100}%"></div></div></div><div class="bg-white rounded-2xl shadow-sm p-4 md:p-5"><h1 class="text-lg md:text-xl font-bold text-insight-navy mb-2">${escapeHtml(s.title)}</h1><p class="text-sm text-gray-600 mb-4 leading-relaxed">${escapeHtml(s.situation)}</p><div class="space-y-2">${s.choices.map((c, i) => `<button onclick="handleChoice(${i})" ${gameState.selectedChoice !== null ? 'disabled' : ''} class="w-full text-left p-3 rounded-xl transition-all ${gameState.selectedChoice === i ? 'bg-orange-50 shadow-md ring-2 ring-insight-orange' : gameState.selectedChoice !== null ? 'bg-gray-50 opacity-40 cursor-not-allowed' : 'bg-white hover:bg-gray-50 active:bg-gray-100 hover:shadow-sm border border-gray-200'}"><div class="flex gap-2 items-start"><div class="w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${gameState.selectedChoice === i ? 'border-insight-orange bg-insight-orange' : 'border-gray-300'}">${gameState.selectedChoice === i ? '<div class="w-2.5 h-2.5 bg-white rounded-full"></div>' : ''}</div><span class="text-insight-navy font-medium text-sm leading-relaxed">${escapeHtml(c.text)}</span></div></button>`).join('')}</div></div></div></div>`;
+            return `<div class="min-h-screen p-3 bg-gradient-to-b from-white to-gray-50"><div class="max-w-3xl mx-auto py-3"><div class="bg-white rounded-2xl shadow-sm p-4 mb-3"><div class="flex justify-between items-start mb-2"><div class="flex-1"><h2 class="text-base md:text-lg font-bold text-insight-navy mb-1">Scenario ${gameState.round + 1} of 12</h2><p class="text-insight-orange font-semibold text-sm md:text-base">${gameState.score} points</p></div><div class="text-right"><div class="text-xs text-insight-grey mb-1">Time Remaining</div><div class="text-2xl font-bold ${timerColor}">${formatTime(gameState.timeRemaining)}</div></div></div><div class="w-full bg-gray-100 rounded-full h-2"><div class="bg-gradient-to-r from-insight-orange to-insight-navy h-2 rounded-full transition-all" style="width: ${((gameState.round + 1) / 12) * 100}%"></div></div></div><div class="bg-white rounded-2xl shadow-sm p-4 md:p-5"><h1 class="text-lg md:text-xl font-bold text-insight-navy mb-2">${escapeHtml(s.title)}</h1><p class="text-sm text-gray-600 mb-4 leading-relaxed">${escapeHtml(s.situation)}</p><div class="space-y-2">${s.choices.map((c, i) => `<button onclick="handleChoice(${i})" ${gameState.selectedChoice !== null ? 'disabled' : ''} class="w-full text-left p-3 rounded-xl transition-all ${gameState.selectedChoice === i ? 'bg-orange-50 shadow-md ring-2 ring-insight-orange' : gameState.selectedChoice !== null ? 'bg-gray-50 opacity-40 cursor-not-allowed' : 'bg-white hover:bg-gray-50 active:bg-gray-100 hover:shadow-sm border border-gray-200'}"><div class="flex gap-2 items-start"><div class="w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${gameState.selectedChoice === i ? 'border-insight-orange bg-insight-orange' : 'border-gray-300'}">${gameState.selectedChoice === i ? '<div class="w-2.5 h-2.5 bg-white rounded-full"></div>' : ''}</div><span class="text-insight-navy font-medium text-sm leading-relaxed">${escapeHtml(c.text)}</span></div></button>`).join('')}</div></div></div></div>`;
         }
 
         function renderExpertAnalysis() {
@@ -849,19 +914,29 @@
         function renderResults() {
             const r = getGrade(gameState.score);
             
-            // Auto-save score if not already saved AND not currently saving
-            if (!gameState.scoreSaved && !gameState.isLoading && gameState.playerName && gameState.playerEmail) {
+            // Auto-save score ONLY if not already saved AND not attempted AND not currently saving
+            if (!gameState.scoreSaved && !gameState.saveAttempted && !gameState.isLoading && gameState.playerName && gameState.playerEmail) {
                 setTimeout(() => saveScore(), 500);
             }
             
             const timeEndedMessage = gameState.endedByTime ? 
-                '<div class="bg-yellow-50 rounded-xl p-3 mb-3 border border-yellow-200"><div class="text-center"><div class="text-2xl mb-1">⏰</div><h3 class="text-sm font-semibold text-yellow-800">Time\'s Up!</h3><p class="text-xs text-yellow-700 mt-1">You completed ${gameState.round} of 10 scenarios. Your score has been automatically saved.</p></div></div>' : '';
+                '<div class="bg-yellow-50 rounded-xl p-3 mb-3 border border-yellow-200"><div class="text-center"><div class="text-2xl mb-1">⏰</div><h3 class="text-sm font-semibold text-yellow-800">Time\'s Up!</h3><p class="text-xs text-yellow-700 mt-1">You completed ${gameState.round} of 12 scenarios. Your score has been automatically saved.</p></div></div>' : '';
             
-            return `<div class="min-h-screen p-3 flex items-center justify-center bg-gradient-to-b from-white to-gray-50"><div class="max-w-xl w-full bg-white rounded-2xl shadow-lg p-5 max-h-[96vh] overflow-y-auto scroll-container"><div class="text-center mb-4"><h1 class="text-xl font-bold text-insight-navy mb-2">Portfolio Complete!</h1><div class="text-4xl font-bold mb-2 ${r.color}">${escapeHtml(r.grade)}</div><p class="text-lg font-semibold text-insight-navy mb-3">${escapeHtml(r.title)}</p><div class="inline-flex gap-2 px-5 py-2 bg-orange-50 rounded-xl"><span class="text-xl font-bold text-insight-orange">${gameState.score} / 350</span></div></div>${timeEndedMessage}${gameState.scoreSaved ? '<div class="bg-green-50 rounded-xl p-3 mb-3 text-center"><div class="text-2xl mb-1">🎉</div><h2 class="text-base font-semibold text-green-700">Score Saved!</h2><p class="text-sm text-green-600 mt-1">Thank you for playing, ${escapeHtml(gameState.playerName)}!</p></div>' : gameState.isLoading ? '<div class="bg-blue-50 rounded-xl p-3 mb-3 text-center"><div class="text-2xl mb-1">⏳</div><h2 class="text-base font-semibold text-insight-navy">Saving your score...</h2></div>' : '<div class="bg-gray-50 rounded-xl p-3 mb-3 text-center"><div class="text-2xl mb-1">💾</div><h2 class="text-base font-semibold text-insight-navy">Saving your score...</h2></div>'}<button onclick="gameState.showAdminLogin = true; render();" class="w-full bg-gray-200 hover:bg-gray-300 active:bg-gray-400 text-gray-700 font-semibold py-2 px-5 rounded-xl transition-all text-xs">🔒 Admin Access</button></div></div>`;
+            let saveStatusHtml = '';
+            if (gameState.scoreSaved) {
+                saveStatusHtml = '<div class="bg-green-50 rounded-xl p-3 mb-3 text-center"><div class="text-2xl mb-1">🎉</div><h2 class="text-base font-semibold text-green-700">Score Saved!</h2><p class="text-sm text-green-600 mt-1">Thank you for playing, ${escapeHtml(gameState.playerName)}!</p></div>';
+            } else if (gameState.isLoading) {
+                saveStatusHtml = '<div class="bg-blue-50 rounded-xl p-3 mb-3 text-center"><div class="text-2xl mb-1">⏳</div><h2 class="text-base font-semibold text-insight-navy">Saving your score...</h2></div>';
+            } else if (gameState.saveAttempted) {
+                // Show retry button if save was attempted but failed
+                saveStatusHtml = '<div class="bg-orange-50 rounded-xl p-3 mb-3 text-center border border-orange-200"><div class="text-2xl mb-1">⚠️</div><h2 class="text-base font-semibold text-orange-800">Save Failed</h2><p class="text-xs text-orange-600 mt-2">Your score could not be saved. Please try again.</p><button onclick="gameState.saveAttempted = false; saveScore();" class="mt-3 px-4 py-2 bg-insight-orange text-white font-semibold rounded-lg hover:opacity-90 text-sm">Retry Save</button></div>';
+            }
+            
+            return `<div class="min-h-screen p-3 flex items-center justify-center bg-gradient-to-b from-white to-gray-50"><div class="max-w-xl w-full bg-white rounded-2xl shadow-lg p-5 max-h-[96vh] overflow-y-auto scroll-container"><div class="text-center mb-4"><h1 class="text-xl font-bold text-insight-navy mb-2">Portfolio Complete!</h1><div class="text-4xl font-bold mb-2 ${r.color}">${escapeHtml(r.grade)}</div><p class="text-lg font-semibold text-insight-navy mb-3">${escapeHtml(r.title)}</p><div class="inline-flex gap-2 px-5 py-2 bg-orange-50 rounded-xl"><span class="text-xl font-bold text-insight-orange">${gameState.score} / 420</span></div></div>${timeEndedMessage}${saveStatusHtml}<button onclick="gameState.showAdminLogin = true; render();" class="w-full bg-gray-200 hover:bg-gray-300 active:bg-gray-400 text-gray-700 font-semibold py-2 px-5 rounded-xl transition-all text-xs">🔒 Admin Access</button></div></div>`;
         }
 
         function renderAdminLogin() {
-            return `<div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-3 animate-fadeIn backdrop-blur-sm" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;"><div class="bg-white rounded-2xl p-5 max-w-sm w-full shadow-2xl animate-scaleIn"><h2 class="text-lg font-bold text-insight-navy mb-3 text-center">🔒 Admin Login</h2><div class="mb-3"><input type="password" id="adminPasswordInput" placeholder="Enter admin password..." class="w-full px-3 py-2.5 rounded-lg border border-gray-200 focus:border-insight-orange focus:ring-2 focus:ring-insight-orange focus:ring-opacity-20 focus:outline-none text-base" onkeypress="if(event.key === 'Enter') checkAdminPassword()"/></div><div class="flex gap-2"><button onclick="checkAdminPassword()" class="flex-1 bg-insight-orange hover:opacity-90 active:scale-95 text-white font-semibold py-2.5 px-4 rounded-lg transition-all text-sm">Login</button><button onclick="gameState.showAdminLogin = false; render();" class="px-4 py-2.5 bg-gray-200 hover:bg-gray-300 active:bg-gray-400 text-gray-700 font-semibold rounded-lg transition-all text-sm">Cancel</button></div></div></div>`;
+            return `<div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-3 animate-fadeIn backdrop-blur-sm" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;"><div class="bg-white rounded-2xl p-5 max-w-sm w-full shadow-2xl animate-scaleIn"><h2 class="text-lg font-bold text-insight-navy mb-3 text-center">🔒 Admin Login</h2><div class="mb-3"><div class="relative"><input type="password" id="adminPasswordInput" placeholder="Enter admin password..." class="w-full px-3 py-2.5 pr-10 rounded-lg border border-gray-200 focus:border-insight-orange focus:ring-2 focus:ring-insight-orange focus:ring-opacity-20 focus:outline-none text-base" onkeypress="if(event.key === 'Enter') checkAdminPassword()"/><button onclick="const inp = document.getElementById('adminPasswordInput'); inp.type = inp.type === 'password' ? 'text' : 'password'; this.textContent = inp.type === 'password' ? '👁️' : '🔒';" class="absolute right-2 top-1/2 -translate-y-1/2 text-lg hover:opacity-70" type="button">👁️</button></div></div><div class="flex gap-2"><button onclick="checkAdminPassword()" class="flex-1 bg-insight-orange hover:opacity-90 active:scale-95 text-white font-semibold py-2.5 px-4 rounded-lg transition-all text-sm">Login</button><button onclick="gameState.showAdminLogin = false; render();" class="px-4 py-2.5 bg-gray-200 hover:bg-gray-300 active:bg-gray-400 text-gray-700 font-semibold rounded-lg transition-all text-sm">Cancel</button></div></div></div>`;
         }
 
         function renderAdmin() {
