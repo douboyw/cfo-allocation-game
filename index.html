@@ -184,7 +184,8 @@
             timeRemaining: 300,
             gameTimer: null,
             gameStartTime: null,
-            endedByTime: false
+            endedByTime: false,
+            autoSaveInitiated: false
         };
 
         const ADMIN_PASSWORD = 'CFOSummit2025!Admin';
@@ -327,7 +328,10 @@
             }
             try {
                 gameState.isLoading = true;
-                render();
+                // Only render if we're on admin screen
+                if (gameState.screen === 'admin') {
+                    render();
+                }
                 
                 console.log('Loading leaderboard for competition:', gameState.competitionId);
                 
@@ -364,16 +368,19 @@
                 // Don't show alert, just log the error
             } finally {
                 gameState.isLoading = false;
-                render();
+                // Only render if we're on admin screen
+                if (gameState.screen === 'admin') {
+                    render();
+                }
             }
         }
 
         async function saveScore() {
             const name = gameState.playerName.trim();
             
-            // Prevent duplicate saves
-            if (gameState.scoreSaved || gameState.isLoading) {
-                console.log('Save already in progress or completed');
+            // Prevent duplicate saves with more aggressive check
+            if (gameState.scoreSaved || gameState.isLoading || gameState.saveAttempted) {
+                console.log('Save blocked: scoreSaved=', gameState.scoreSaved, 'isLoading=', gameState.isLoading, 'saveAttempted=', gameState.saveAttempted);
                 return;
             }
             
@@ -388,9 +395,11 @@
             }
 
             try {
+                // Set flags FIRST before any async operations
                 gameState.isLoading = true;
                 gameState.saveAttempted = true;
-                render();
+                
+                console.log('Starting save process...');
                 
                 // Calculate game duration in seconds
                 const gameDuration = gameState.gameStartTime ? Math.floor((Date.now() - gameState.gameStartTime) / 1000) : 300 - gameState.timeRemaining;
@@ -400,7 +409,7 @@
                     email: (gameState.playerEmail || '').toLowerCase(),
                     score: gameState.score, 
                     timestamp: Date.now(), 
-                    duration: gameDuration, // Time taken in seconds
+                    duration: gameDuration,
                     grade: getGrade(gameState.score).grade, 
                     competitionId: gameState.competitionId,
                     choices: gameState.playerChoices
@@ -421,13 +430,13 @@
                             .collection('scores')
                             .add(entry);
                         saved = true;
-                        console.log('Score saved successfully');
+                        console.log('✅ Score saved successfully');
                     } catch (err) {
                         lastError = err;
                         retries--;
                         console.error(`Save attempt failed (${3 - retries}/3):`, err);
                         if (retries > 0) {
-                            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
+                            await new Promise(resolve => setTimeout(resolve, 1000));
                         }
                     }
                 }
@@ -436,14 +445,18 @@
                     throw lastError || new Error('Failed to save score after 3 attempts');
                 }
                 
+                // Mark as saved
                 gameState.scoreSaved = true;
+                console.log('Score marked as saved');
+                
+                // Load leaderboard
                 await loadLeaderboard();
+                
             } catch (error) {
-                console.error('Error saving score:', error);
-                // Show user-friendly error message but don't block the UI
+                console.error('❌ Error saving score:', error);
+                // Reset flags to allow retry
                 gameState.scoreSaved = false;
-                gameState.saveAttempted = false; // Allow retry on error
-                render();
+                gameState.saveAttempted = false;
             } finally {
                 gameState.isLoading = false;
                 render();
@@ -738,7 +751,8 @@
                 timeRemaining: 300,
                 gameTimer: null,
                 gameStartTime: null,
-                endedByTime: false
+                endedByTime: false,
+                autoSaveInitiated: false
             };
             render();
         }
@@ -1098,8 +1112,11 @@
         function renderResults() {
             const r = getGrade(gameState.score);
             
-            // Auto-save score ONLY if not already saved AND not attempted AND not currently saving
-            if (!gameState.scoreSaved && !gameState.saveAttempted && !gameState.isLoading && gameState.playerName && gameState.playerEmail) {
+            // Auto-save score ONLY ONCE - check if not already initiated
+            if (!gameState.scoreSaved && !gameState.saveAttempted && !gameState.isLoading && 
+                !gameState.autoSaveInitiated && gameState.playerName && gameState.playerEmail) {
+                gameState.autoSaveInitiated = true; // Set flag immediately to prevent duplicate calls
+                console.log('Auto-save initiated from renderResults');
                 setTimeout(() => saveScore(), 500);
             }
             
