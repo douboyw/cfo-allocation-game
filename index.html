@@ -184,8 +184,7 @@
             timeRemaining: 300,
             gameTimer: null,
             gameStartTime: null,
-            endedByTime: false,
-            autoSaveInitiated: false
+            endedByTime: false
         };
 
         const ADMIN_PASSWORD = 'CFOSummit2025!Admin';
@@ -328,10 +327,7 @@
             }
             try {
                 gameState.isLoading = true;
-                // Only render if we're on admin screen
-                if (gameState.screen === 'admin') {
-                    render();
-                }
+                render();
                 
                 console.log('Loading leaderboard for competition:', gameState.competitionId);
                 
@@ -368,19 +364,16 @@
                 // Don't show alert, just log the error
             } finally {
                 gameState.isLoading = false;
-                // Only render if we're on admin screen
-                if (gameState.screen === 'admin') {
-                    render();
-                }
+                render();
             }
         }
 
         async function saveScore() {
             const name = gameState.playerName.trim();
             
-            // Prevent duplicate saves with more aggressive check
-            if (gameState.scoreSaved || gameState.isLoading || gameState.saveAttempted) {
-                console.log('Save blocked: scoreSaved=', gameState.scoreSaved, 'isLoading=', gameState.isLoading, 'saveAttempted=', gameState.saveAttempted);
+            // Prevent duplicate saves
+            if (gameState.scoreSaved || gameState.isLoading) {
+                console.log('Save already in progress or completed');
                 return;
             }
             
@@ -395,11 +388,9 @@
             }
 
             try {
-                // Set flags FIRST before any async operations
                 gameState.isLoading = true;
                 gameState.saveAttempted = true;
-                
-                console.log('Starting save process...');
+                render();
                 
                 // Calculate game duration in seconds
                 const gameDuration = gameState.gameStartTime ? Math.floor((Date.now() - gameState.gameStartTime) / 1000) : 300 - gameState.timeRemaining;
@@ -409,7 +400,7 @@
                     email: (gameState.playerEmail || '').toLowerCase(),
                     score: gameState.score, 
                     timestamp: Date.now(), 
-                    duration: gameDuration,
+                    duration: gameDuration, // Time taken in seconds
                     grade: getGrade(gameState.score).grade, 
                     competitionId: gameState.competitionId,
                     choices: gameState.playerChoices
@@ -430,13 +421,13 @@
                             .collection('scores')
                             .add(entry);
                         saved = true;
-                        console.log('✅ Score saved successfully');
+                        console.log('Score saved successfully');
                     } catch (err) {
                         lastError = err;
                         retries--;
                         console.error(`Save attempt failed (${3 - retries}/3):`, err);
                         if (retries > 0) {
-                            await new Promise(resolve => setTimeout(resolve, 1000));
+                            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
                         }
                     }
                 }
@@ -445,18 +436,14 @@
                     throw lastError || new Error('Failed to save score after 3 attempts');
                 }
                 
-                // Mark as saved
                 gameState.scoreSaved = true;
-                console.log('Score marked as saved');
-                
-                // Load leaderboard
                 await loadLeaderboard();
-                
             } catch (error) {
-                console.error('❌ Error saving score:', error);
-                // Reset flags to allow retry
+                console.error('Error saving score:', error);
+                // Show user-friendly error message but don't block the UI
                 gameState.scoreSaved = false;
-                gameState.saveAttempted = false;
+                gameState.saveAttempted = false; // Allow retry on error
+                render();
             } finally {
                 gameState.isLoading = false;
                 render();
@@ -681,11 +668,7 @@
             }
             
             setTimeout(() => { 
-                gameState.showExpertAnalysis = true;
-                // Lock body scroll on mobile
-                document.body.style.overflow = 'hidden';
-                document.body.style.position = 'fixed';
-                document.body.style.width = '100%';
+                gameState.showExpertAnalysis = true; 
                 render(); 
             }, 300);
         }
@@ -700,11 +683,6 @@
             
             gameState.score += choice.points;
             gameState.showExpertAnalysis = false;
-            
-            // Unlock body scroll
-            document.body.style.overflow = '';
-            document.body.style.position = '';
-            document.body.style.width = '';
             
             if (gameState.round < scenarios.length - 1) {
                 gameState.round++;
@@ -751,8 +729,7 @@
                 timeRemaining: 300,
                 gameTimer: null,
                 gameStartTime: null,
-                endedByTime: false,
-                autoSaveInitiated: false
+                endedByTime: false
             };
             render();
         }
@@ -955,25 +932,8 @@
                 else if (gameState.screen === 'results') app.innerHTML = renderResults();
                 else if (gameState.screen === 'admin') app.innerHTML = renderAdmin();
                 
-                if (gameState.showExpertAnalysis) {
-                    document.body.style.overflow = 'hidden';
-                    document.body.style.position = 'fixed';
-                    document.body.style.width = '100%';
-                    app.innerHTML += renderExpertAnalysis();
-                }
-                if (gameState.showAdminLogin) {
-                    document.body.style.overflow = 'hidden';
-                    document.body.style.position = 'fixed';
-                    document.body.style.width = '100%';
-                    app.innerHTML += renderAdminLogin();
-                }
-                
-                // Unlock body scroll if no modals are showing
-                if (!gameState.showExpertAnalysis && !gameState.showAdminLogin) {
-                    document.body.style.overflow = '';
-                    document.body.style.position = '';
-                    document.body.style.width = '';
-                }
+                if (gameState.showExpertAnalysis) app.innerHTML += renderExpertAnalysis();
+                if (gameState.showAdminLogin) app.innerHTML += renderAdminLogin();
                 
                 // Scroll to top AFTER rendering (except on admin screen during auto-refresh)
                 if (gameState.screen !== 'admin') {
@@ -1106,17 +1066,14 @@
 
         function renderExpertAnalysis() {
             const c = scenarios[gameState.round].choices[gameState.selectedChoice];
-            return `<div class="fixed inset-0 bg-black/60 flex items-center justify-center p-3 animate-fadeIn backdrop-blur-sm" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999; overflow-y: auto; -webkit-overflow-scrolling: touch;"><div class="bg-white rounded-2xl p-4 md:p-5 w-full max-w-2xl my-auto shadow-2xl animate-scaleIn" style="max-height: 90vh; overflow-y: auto; -webkit-overflow-scrolling: touch;"><button onclick="closeExpertAnalysis()" class="w-full bg-insight-orange hover:opacity-90 active:scale-95 text-white font-semibold py-2.5 px-5 rounded-xl text-sm mb-4 transition-all shadow-sm sticky top-0 z-10">⬇️ Continue to Next Scenario ⬇️</button><div class="space-y-4"><div><div class="text-center mb-3"><h2 class="text-base md:text-lg font-bold text-insight-navy">Analysis</h2></div><div class="bg-orange-50 rounded-xl p-3 mb-3"><p class="font-semibold text-insight-navy mb-2 text-sm">${escapeHtml(c.text)}</p><p class="text-gray-700 leading-relaxed text-xs">${escapeHtml(c.feedback)}</p></div><div class="text-center"><span class="text-xl md:text-2xl font-bold text-insight-orange">+${c.points} Points</span></div></div><div class="bg-blue-50 rounded-xl p-3"><h3 class="font-semibold text-insight-navy mb-3 text-sm">Portfolio Impact</h3><div class="grid grid-cols-2 gap-2"><div class="bg-white p-2.5 rounded-lg shadow-sm"><div class="text-xs text-insight-grey font-medium uppercase tracking-wide mb-1">ARR Growth</div><div class="text-base md:text-lg font-bold text-insight-navy">${c.impact.arr > 0 ? '+' : ''}${c.impact.arr}%</div></div><div class="bg-white p-2.5 rounded-lg shadow-sm"><div class="text-xs text-insight-grey font-medium uppercase tracking-wide mb-1">EBITDA Margin</div><div class="text-base md:text-lg font-bold text-insight-navy">${c.impact.ebitdaMargin > 0 ? '+' : ''}${c.impact.ebitdaMargin}%</div></div><div class="bg-white p-2.5 rounded-lg shadow-sm"><div class="text-xs text-insight-grey font-medium uppercase tracking-wide mb-1">NRR</div><div class="text-base md:text-lg font-bold text-insight-navy">${c.impact.nrr > 0 ? '+' : ''}${c.impact.nrr}%</div></div><div class="bg-white p-2.5 rounded-lg shadow-sm"><div class="text-xs text-insight-grey font-medium uppercase tracking-wide mb-1">Multiple Expansion</div><div class="text-base md:text-lg font-bold text-insight-navy">${c.impact.multipleExpansion > 0 ? '+' : ''}${c.impact.multipleExpansion}%</div></div></div></div></div></div></div>`;
+            return `<div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-3 animate-fadeIn backdrop-blur-sm" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;"><div class="bg-white rounded-2xl p-4 md:p-5 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl animate-scaleIn scroll-container"><button onclick="closeExpertAnalysis()" class="w-full bg-insight-orange hover:opacity-90 active:scale-95 text-white font-semibold py-2.5 px-5 rounded-xl text-sm mb-4 transition-all shadow-sm">⬇️ Continue to Next Scenario ⬇️</button><div class="space-y-4"><div><div class="text-center mb-3"><h2 class="text-base md:text-lg font-bold text-insight-navy">Analysis</h2></div><div class="bg-orange-50 rounded-xl p-3 mb-3"><p class="font-semibold text-insight-navy mb-2 text-sm">${escapeHtml(c.text)}</p><p class="text-gray-700 leading-relaxed text-xs">${escapeHtml(c.feedback)}</p></div><div class="text-center"><span class="text-xl md:text-2xl font-bold text-insight-orange">+${c.points} Points</span></div></div><div class="bg-blue-50 rounded-xl p-3"><h3 class="font-semibold text-insight-navy mb-3 text-sm">Portfolio Impact</h3><div class="grid grid-cols-2 gap-2"><div class="bg-white p-2.5 rounded-lg shadow-sm"><div class="text-xs text-insight-grey font-medium uppercase tracking-wide mb-1">ARR Growth</div><div class="text-base md:text-lg font-bold text-insight-navy">${c.impact.arr > 0 ? '+' : ''}${c.impact.arr}%</div></div><div class="bg-white p-2.5 rounded-lg shadow-sm"><div class="text-xs text-insight-grey font-medium uppercase tracking-wide mb-1">EBITDA Margin</div><div class="text-base md:text-lg font-bold text-insight-navy">${c.impact.ebitdaMargin > 0 ? '+' : ''}${c.impact.ebitdaMargin}%</div></div><div class="bg-white p-2.5 rounded-lg shadow-sm"><div class="text-xs text-insight-grey font-medium uppercase tracking-wide mb-1">NRR</div><div class="text-base md:text-lg font-bold text-insight-navy">${c.impact.nrr > 0 ? '+' : ''}${c.impact.nrr}%</div></div><div class="bg-white p-2.5 rounded-lg shadow-sm"><div class="text-xs text-insight-grey font-medium uppercase tracking-wide mb-1">Multiple Expansion</div><div class="text-base md:text-lg font-bold text-insight-navy">${c.impact.multipleExpansion > 0 ? '+' : ''}${c.impact.multipleExpansion}%</div></div></div></div></div></div></div>`;
         }
 
         function renderResults() {
             const r = getGrade(gameState.score);
             
-            // Auto-save score ONLY ONCE - check if not already initiated
-            if (!gameState.scoreSaved && !gameState.saveAttempted && !gameState.isLoading && 
-                !gameState.autoSaveInitiated && gameState.playerName && gameState.playerEmail) {
-                gameState.autoSaveInitiated = true; // Set flag immediately to prevent duplicate calls
-                console.log('Auto-save initiated from renderResults');
+            // Auto-save score ONLY if not already saved AND not attempted AND not currently saving
+            if (!gameState.scoreSaved && !gameState.saveAttempted && !gameState.isLoading && gameState.playerName && gameState.playerEmail) {
                 setTimeout(() => saveScore(), 500);
             }
             
@@ -1137,7 +1094,7 @@
         }
 
         function renderAdminLogin() {
-            return `<div class="fixed inset-0 bg-black/60 flex items-center justify-center p-3 animate-fadeIn backdrop-blur-sm" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999; overflow-y: auto; -webkit-overflow-scrolling: touch;"><div class="bg-white rounded-2xl p-5 max-w-sm w-full shadow-2xl animate-scaleIn"><h2 class="text-lg font-bold text-insight-navy mb-3 text-center">🔒 Admin Login</h2><div class="mb-3"><div class="relative"><input type="password" id="adminPasswordInput" name="admin-login-unique" placeholder="Enter admin password..." autocomplete="new-password" class="w-full px-3 py-2.5 pr-10 rounded-lg border border-gray-200 focus:border-insight-orange focus:ring-2 focus:ring-insight-orange focus:ring-opacity-20 focus:outline-none text-base" onkeypress="if(event.key === 'Enter') checkAdminPassword()" /><button onclick="const inp = document.getElementById('adminPasswordInput'); inp.type = inp.type === 'password' ? 'text' : 'password'; this.textContent = inp.type === 'password' ? '👁️' : '🔒';" class="absolute right-2 top-1/2 -translate-y-1/2 text-lg hover:opacity-70" type="button">👁️</button></div></div><div class="flex gap-2"><button onclick="checkAdminPassword()" class="flex-1 bg-insight-orange hover:opacity-90 active:scale-95 text-white font-semibold py-2.5 px-4 rounded-lg transition-all text-sm">Login</button><button onclick="gameState.showAdminLogin = false; render();" class="px-4 py-2.5 bg-gray-200 hover:bg-gray-300 active:bg-gray-400 text-gray-700 font-semibold rounded-lg transition-all text-sm">Cancel</button></div></div></div>`;
+            return `<div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-3 animate-fadeIn backdrop-blur-sm" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;"><div class="bg-white rounded-2xl p-5 max-w-sm w-full shadow-2xl animate-scaleIn"><h2 class="text-lg font-bold text-insight-navy mb-3 text-center">🔒 Admin Login</h2><div class="mb-3"><div class="relative"><input type="password" id="adminPasswordInput" name="admin-login-unique" placeholder="Enter admin password..." autocomplete="new-password" class="w-full px-3 py-2.5 pr-10 rounded-lg border border-gray-200 focus:border-insight-orange focus:ring-2 focus:ring-insight-orange focus:ring-opacity-20 focus:outline-none text-base" onkeypress="if(event.key === 'Enter') checkAdminPassword()" /><button onclick="const inp = document.getElementById('adminPasswordInput'); inp.type = inp.type === 'password' ? 'text' : 'password'; this.textContent = inp.type === 'password' ? '👁️' : '🔒';" class="absolute right-2 top-1/2 -translate-y-1/2 text-lg hover:opacity-70" type="button">👁️</button></div></div><div class="flex gap-2"><button onclick="checkAdminPassword()" class="flex-1 bg-insight-orange hover:opacity-90 active:scale-95 text-white font-semibold py-2.5 px-4 rounded-lg transition-all text-sm">Login</button><button onclick="gameState.showAdminLogin = false; render();" class="px-4 py-2.5 bg-gray-200 hover:bg-gray-300 active:bg-gray-400 text-gray-700 font-semibold rounded-lg transition-all text-sm">Cancel</button></div></div></div>`;
         }
 
         function renderAdmin() {
