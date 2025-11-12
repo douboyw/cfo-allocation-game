@@ -533,6 +533,7 @@
                     render();
                     // Auto-save score when time expires (only if not already saved/saving/attempted)
                     if (!gameState.scoreSaved && !gameState.saveAttempted && !gameState.isLoading && gameState.playerName && gameState.playerEmail) {
+                        gameState.saveAttempted = true; // Set immediately to prevent duplicate save attempts
                         setTimeout(() => saveScore(), 500);
                     }
                     loadLeaderboard();
@@ -555,6 +556,7 @@
                         render();
                         // Auto-save score when time expires (only if not already saved/saving/attempted)
                         if (!gameState.scoreSaved && !gameState.saveAttempted && !gameState.isLoading && gameState.playerName && gameState.playerEmail) {
+                            gameState.saveAttempted = true; // Set immediately to prevent duplicate save attempts
                             setTimeout(() => saveScore(), 500);
                         }
                         loadLeaderboard();
@@ -1074,6 +1076,7 @@
             
             // Auto-save score ONLY if not already saved AND not attempted AND not currently saving
             if (!gameState.scoreSaved && !gameState.saveAttempted && !gameState.isLoading && gameState.playerName && gameState.playerEmail) {
+                gameState.saveAttempted = true; // Set immediately to prevent duplicate save attempts
                 setTimeout(() => saveScore(), 500);
             }
             
