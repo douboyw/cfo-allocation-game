@@ -389,7 +389,6 @@
 
             try {
                 gameState.isLoading = true;
-                gameState.saveAttempted = true;
                 render();
                 
                 // Calculate game duration in seconds
@@ -528,14 +527,16 @@
                 if (gameState.timeRemaining <= 0) {
                     stopGameTimer();
                     gameState.endedByTime = true; // Mark that game ended due to time
+                    
+                    // FIXED: Set saveAttempted flag BEFORE scheduling save to prevent race condition
+                    if (!gameState.scoreSaved && !gameState.saveAttempted && !gameState.isLoading && gameState.playerName && gameState.playerEmail) {
+                        gameState.saveAttempted = true; // CRITICAL: Set BEFORE setTimeout
+                        setTimeout(() => saveScore(), 500);
+                    }
+                    
                     // Auto-finish game when time runs out
                     gameState.screen = 'results';
                     render();
-                    // Auto-save score when time expires (only if not already saved/saving/attempted)
-                    if (!gameState.scoreSaved && !gameState.saveAttempted && !gameState.isLoading && gameState.playerName && gameState.playerEmail) {
-                        gameState.saveAttempted = true; // Set immediately to prevent duplicate save attempts
-                        setTimeout(() => saveScore(), 500);
-                    }
                     loadLeaderboard();
                 }
                 
@@ -552,13 +553,15 @@
                     if (gameState.timeRemaining <= 0) {
                         stopGameTimer();
                         gameState.endedByTime = true;
-                        gameState.screen = 'results';
-                        render();
-                        // Auto-save score when time expires (only if not already saved/saving/attempted)
+                        
+                        // FIXED: Set saveAttempted flag BEFORE scheduling save to prevent race condition
                         if (!gameState.scoreSaved && !gameState.saveAttempted && !gameState.isLoading && gameState.playerName && gameState.playerEmail) {
-                            gameState.saveAttempted = true; // Set immediately to prevent duplicate save attempts
+                            gameState.saveAttempted = true; // CRITICAL: Set BEFORE setTimeout
                             setTimeout(() => saveScore(), 500);
                         }
+                        
+                        gameState.screen = 'results';
+                        render();
                         loadLeaderboard();
                     }
                     
@@ -717,7 +720,7 @@
                 playerEmail: '',
                 scoreSaved: false,
                 saveAttempted: false,
-                competitionId: 'cfo-summit-2025-TEST',
+                competitionId: 'cfo-summit-2025',
                 isLoading: false,
                 metrics: { arr: 50, ebitdaMargin: 50, nrr: 50, multipleExpansion: 50 },
                 adminPassword: '',
@@ -1030,7 +1033,6 @@
             </div>
         </div>
 
-        <!-- START GAME BUTTON - ALWAYS VISIBLE -->
         <button onclick="gameState.screen = 'intro'; render();" 
                 style="background: linear-gradient(to right, #FF531B, #182A35, #63779A); opacity: 1 !important; visibility: visible !important; display: block !important; border: 3px solid #FF531B;"
                 class="w-full text-white font-bold py-4 md:py-5 px-8 md:px-10 rounded-2xl text-xl md:text-2xl shadow-2xl transition-all transform hover:scale-105 active:scale-95 relative overflow-hidden">
@@ -1074,14 +1076,10 @@
         function renderResults() {
             const r = getGrade(gameState.score);
             
-            // Auto-save score ONLY if not already saved AND not attempted AND not currently saving
-            if (!gameState.scoreSaved && !gameState.saveAttempted && !gameState.isLoading && gameState.playerName && gameState.playerEmail) {
-                gameState.saveAttempted = true; // Set immediately to prevent duplicate save attempts
-                setTimeout(() => saveScore(), 500);
-            }
+            // REMOVED: No auto-save logic here! Save only happens from timer expiration
             
             const timeEndedMessage = gameState.endedByTime ? 
-                '<div class="bg-yellow-50 rounded-xl p-3 mb-3 border border-yellow-200"><div class="text-center"><div class="text-2xl mb-1">⏰</div><h3 class="text-sm font-semibold text-yellow-800">Time\'s Up!</h3><p class="text-xs text-yellow-700 mt-1">You completed ${gameState.round} of 12 scenarios. Your score has been automatically saved.</p></div></div>' : '';
+                '<div class="bg-yellow-50 rounded-xl p-3 mb-3 border border-yellow-200"><div class="text-center"><div class="text-2xl mb-1">⏰</div><h3 class="text-sm font-semibold text-yellow-800">Time\'s Up!</h3><p class="text-xs text-yellow-700 mt-1">You completed ' + gameState.round + ' of 12 scenarios. Your score has been automatically saved.</p></div></div>' : '';
             
             let saveStatusHtml = '';
             if (gameState.scoreSaved) {
