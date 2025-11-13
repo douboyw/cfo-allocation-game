@@ -181,7 +181,7 @@
             lastRefreshTime: null,
             autoRefreshInterval: null,
             clockInterval: null,
-            timeRemaining: 300,
+            timeRemaining: 480,
             gameTimer: null,
             gameStartTime: null,
             endedByTime: false
@@ -392,7 +392,7 @@
                 render();
                 
                 // Calculate game duration in seconds
-                const gameDuration = gameState.gameStartTime ? Math.floor((Date.now() - gameState.gameStartTime) / 1000) : 300 - gameState.timeRemaining;
+                const gameDuration = gameState.gameStartTime ? Math.floor((Date.now() - gameState.gameStartTime) / 1000) : 480 - gameState.timeRemaining;
                 
                 const entry = { 
                     name: name,
@@ -520,7 +520,7 @@
 
         function startGameTimer() {
             stopGameTimer();
-            gameState.timeRemaining = 300; // 5 minutes
+            gameState.timeRemaining = 480; // 8 minutes
             gameState.gameStartTime = Date.now();
             gameState.endedByTime = false;
             
@@ -739,7 +739,7 @@
                 lastRefreshTime: null,
                 autoRefreshInterval: null,
                 clockInterval: null,
-                timeRemaining: 300,
+                timeRemaining: 480,
                 gameTimer: null,
                 gameStartTime: null,
                 endedByTime: false
@@ -920,7 +920,7 @@
                         </li>
                         <li class="flex items-start gap-2">
                             <span class="text-insight-orange font-bold mt-1">•</span>
-                            <span>Complete in <strong>5 minutes</strong> - test your decision-making speed!</span>
+                            <span>Complete in <strong>8 minutes</strong> - test your decision-making speed!</span>
                         </li>
                     </ul>
                 </div>
