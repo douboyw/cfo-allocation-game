@@ -1,0 +1,1182 @@
+import React, { useState } from 'react';
+import { BookOpen, Star, CheckCircle, XCircle, Trophy, ArrowRight } from 'lucide-react';
+
+const stories = [
+  // EASY LEVEL (1-7)
+  {
+    level: 1,
+    difficulty: "Easy",
+    title: "The Lost Puppy",
+    text: `Emma was walking home from school when she heard a soft whimpering sound. She looked around and saw a small brown puppy sitting under a bush. The puppy had no collar and looked scared.
+
+"Don't worry, little guy," Emma said softly. She slowly approached the puppy and it wagged its tail. Emma picked up the puppy and took it home.
+
+Her mom helped her make signs that said "Found Puppy" with their phone number. They hung the signs around the neighborhood. That evening, a family called. They had been looking for their puppy all day!
+
+When the family came to pick up the puppy, they were so happy. The little girl hugged her puppy tight. "Thank you so much!" she said to Emma. Emma felt proud that she had helped reunite the puppy with its family.`,
+    questions: [
+      {
+        question: "Where did Emma find the puppy?",
+        options: ["In her backyard", "Under a bush", "At the park", "In her classroom"],
+        correct: 1,
+        explanation: "The story says Emma saw the puppy sitting under a bush."
+      },
+      {
+        question: "How did Emma help find the puppy's owners?",
+        options: ["She called the police", "She posted on social media", "She made signs with her phone number", "She took it to a vet"],
+        correct: 2,
+        explanation: "Emma and her mom made 'Found Puppy' signs with their phone number and hung them around the neighborhood."
+      },
+      {
+        question: "How did Emma feel at the end of the story?",
+        options: ["Sad and disappointed", "Proud that she helped", "Angry at the owners", "Worried about the puppy"],
+        correct: 1,
+        explanation: "The story states that Emma felt proud that she had helped reunite the puppy with its family."
+      }
+    ]
+  },
+  {
+    level: 2,
+    difficulty: "Easy",
+    title: "The Science Fair Project",
+    text: `Marcus wanted to do something special for the science fair. He loved plants, so he decided to test which type of music plants liked best. He got three identical bean plants and put them in different rooms.
+
+The first plant listened to classical music for one hour each day. The second plant listened to rock music. The third plant stayed in a quiet room with no music at all.
+
+Marcus watered all three plants the same amount and made sure they all got the same amount of sunlight. He measured them every day for three weeks. He was surprised by what he discovered!
+
+The plant that listened to classical music grew the tallest. The plant with no music grew second tallest. The rock music plant grew the least. Marcus made a colorful poster showing his results. At the science fair, the judges were impressed by his careful experiment. He won second place!`,
+    questions: [
+      {
+        question: "What was Marcus testing in his experiment?",
+        options: ["How much water plants need", "Which music plants like best", "What color flowers grow", "How fast seeds sprout"],
+        correct: 1,
+        explanation: "Marcus wanted to test which type of music plants liked best."
+      },
+      {
+        question: "Which plant grew the tallest?",
+        options: ["The rock music plant", "The quiet plant", "The classical music plant", "They all grew the same"],
+        correct: 2,
+        explanation: "The plant that listened to classical music grew the tallest."
+      },
+      {
+        question: "Why was Marcus's experiment fair and scientific?",
+        options: ["He used different types of plants", "He gave them different amounts of water", "He kept everything the same except the music", "He only measured them once"],
+        correct: 2,
+        explanation: "Marcus watered all plants the same and gave them the same sunlight, only changing the music—this makes it a fair test."
+      }
+    ]
+  },
+  {
+    level: 3,
+    difficulty: "Easy",
+    title: "The Camping Trip",
+    text: `It was Sarah's first camping trip with her family. She was excited but also a little nervous about sleeping in a tent. Her dad taught her how to set up the tent while her mom started a campfire.
+
+As the sun set, they roasted marshmallows and told stories. Sarah loved watching the flames dance in the darkness. When it was time for bed, she snuggled into her sleeping bag. At first, the forest sounds scared her. She heard owls hooting and leaves rustling.
+
+"Dad, what's that noise?" Sarah whispered.
+
+"Just the wind and the animals going about their night," her dad said calmly. "They won't bother us. Listen carefully—isn't it peaceful?"
+
+Sarah listened again. This time, the sounds didn't seem scary. They seemed natural and calm. She fell asleep listening to the gentle sounds of the forest. In the morning, she woke up to birds singing and sunlight filtering through the tent. She couldn't wait to go camping again!`,
+    questions: [
+      {
+        question: "How did Sarah's feelings about camping change?",
+        options: ["She stayed nervous the whole time", "She went from excited to scared", "She went from nervous to enjoying it", "She never wanted to go again"],
+        correct: 2,
+        explanation: "Sarah started nervous but ended up loving the experience and wanting to go camping again."
+      },
+      {
+        question: "What helped Sarah feel less scared of the forest sounds?",
+        options: ["Her dad turned on a light", "Her dad explained the sounds were natural", "She put in earplugs", "Her mom told her a story"],
+        correct: 1,
+        explanation: "Her dad calmly explained that the sounds were just the wind and animals, and asked her to listen to how peaceful it was."
+      },
+      {
+        question: "What can you infer about Sarah's dad?",
+        options: ["He was also scared", "He was patient and reassuring", "He wanted to go home", "He had never camped before"],
+        correct: 1,
+        explanation: "He calmly explained the sounds and helped Sarah see them as peaceful rather than scary, showing patience and reassurance."
+      }
+    ]
+  },
+  {
+    level: 4,
+    difficulty: "Easy",
+    title: "The New Student",
+    text: `When Li Wei walked into his new classroom, everyone stared at him. He had just moved to America from China, and this was his first day at Lincoln Elementary. He understood English well from studying it, but he felt shy about speaking.
+
+At lunch, Li Wei sat alone at a table. He opened his lunch box, which had dumplings his grandmother had made. A boy named Jake walked over. "Hey, can I sit here?" Jake asked. Li Wei nodded, relieved to have company.
+
+"What's that?" Jake pointed at the dumplings.
+
+"Jiaozi," Li Wei said quietly. "Chinese dumplings."
+
+"They look good! I'm Jake. Want to play basketball after lunch?"
+
+Li Wei smiled. "Yes, I like basketball!"
+
+From that day on, Jake and Li Wei became good friends. Jake was curious about China and asked Li Wei to teach him some Chinese words. Li Wei felt more confident speaking English, knowing Jake was patient with him. By the end of the month, Li Wei had many friends and loved his new school.`,
+    questions: [
+      {
+        question: "Why did Li Wei feel shy at first?",
+        options: ["He didn't know how to play basketball", "He was nervous about speaking English", "He didn't like his new school", "He wanted to go back to China"],
+        correct: 1,
+        explanation: "Li Wei understood English but felt shy about speaking it, which made him nervous on his first day."
+      },
+      {
+        question: "What did Jake do that showed he was a good friend?",
+        options: ["He laughed at Li Wei's lunch", "He ignored Li Wei", "He was friendly, curious, and patient", "He spoke Chinese fluently"],
+        correct: 2,
+        explanation: "Jake sat with Li Wei, showed interest in his culture, invited him to play, and was patient with his English."
+      },
+      {
+        question: "What is the main message of this story?",
+        options: ["Basketball is fun to play", "Chinese food is delicious", "Kindness and openness help people feel welcome", "Learning languages is important"],
+        correct: 2,
+        explanation: "The story shows how Jake's kindness and openness helped Li Wei feel welcome and make friends in his new school."
+      }
+    ]
+  },
+  {
+    level: 5,
+    difficulty: "Easy",
+    title: "The Broken Window",
+    text: `Tommy's baseball flew through the air and crashed straight through Mr. Peterson's window. Glass shattered everywhere. Tommy's heart sank. He wanted to run away, but he knew that wasn't right.
+
+Taking a deep breath, Tommy walked up to Mr. Peterson's front door and knocked. Mr. Peterson answered, looking concerned. "Mr. Peterson, I'm really sorry. I broke your window with my baseball. I didn't mean to, but it was my fault."
+
+Mr. Peterson looked at the broken window, then back at Tommy. "I appreciate you telling me the truth, Tommy. That took courage. How do you plan to fix this?"
+
+"I have money saved from my allowance," Tommy said. "It's not much, but I can help pay for it. And I can help clean up the glass if you want."
+
+Mr. Peterson smiled. "Tell you what—you help me clean up and do some yard work for me this month, and we'll call it even. Accidents happen, but what matters is taking responsibility."
+
+Tommy worked hard for Mr. Peterson every weekend that month. He learned that admitting mistakes is hard but important. Mr. Peterson and Tommy became friends, and Tommy was more careful where he played baseball after that.`,
+    questions: [
+      {
+        question: "What did Tommy do after breaking the window?",
+        options: ["He ran away and hid", "He told his parents first", "He immediately went to Mr. Peterson and admitted it", "He waited for Mr. Peterson to find out"],
+        correct: 2,
+        explanation: "Despite wanting to run away, Tommy went straight to Mr. Peterson's door and admitted what he had done."
+      },
+      {
+        question: "Why did Mr. Peterson say Tommy showed courage?",
+        options: ["Because Tommy played baseball well", "Because Tommy told the truth about his mistake", "Because Tommy wasn't afraid of him", "Because Tommy offered money"],
+        correct: 1,
+        explanation: "Mr. Peterson appreciated that Tommy told the truth, saying it took courage to admit his mistake."
+      },
+      {
+        question: "What lesson did Tommy learn from this experience?",
+        options: ["Don't play baseball", "Avoid talking to neighbors", "Taking responsibility for mistakes is important", "Always bring money when playing outside"],
+        correct: 2,
+        explanation: "Tommy learned that admitting mistakes is hard but important—taking responsibility matters."
+      }
+    ]
+  },
+  {
+    level: 6,
+    difficulty: "Easy",
+    title: "The Garden Mystery",
+    text: `Mrs. Chen loved her vegetable garden. Every morning, she would check on her tomatoes, peppers, and cucumbers. But lately, something strange was happening. Every few days, she would find that someone—or something—had been eating her vegetables!
+
+At first, Mrs. Chen thought it might be rabbits. She put up a small fence. But the vegetables kept disappearing. Then she thought it might be deer. She hung shiny ribbons that were supposed to scare them away. Still, the vegetables vanished.
+
+One early morning, Mrs. Chen woke up before sunrise and quietly watched her garden from her kitchen window. She waited patiently with a cup of tea. Just as the sun began to rise, she saw movement. A family of groundhogs emerged from a hole at the edge of her garden!
+
+Mrs. Chen smiled. She wasn't angry anymore. Instead, she decided to plant extra vegetables in a far corner of her yard, just for the groundhogs. She also put up a proper fence around her main garden. Now everyone was happy—Mrs. Chen got her vegetables, and the groundhogs got theirs too!`,
+    questions: [
+      {
+        question: "What did Mrs. Chen do to solve the mystery?",
+        options: ["She asked her neighbors", "She watched her garden early in the morning", "She called animal control", "She gave up on her garden"],
+        correct: 1,
+        explanation: "Mrs. Chen woke up before sunrise and patiently watched her garden to discover who was eating her vegetables."
+      },
+      {
+        question: "How did Mrs. Chen's feelings change throughout the story?",
+        options: ["She went from happy to angry", "She stayed angry the whole time", "She went from frustrated to understanding", "She was never bothered by it"],
+        correct: 2,
+        explanation: "Mrs. Chen was initially frustrated by her vegetables disappearing, but once she saw the groundhog family, she smiled and found a kind solution."
+      },
+      {
+        question: "What does Mrs. Chen's solution tell us about her character?",
+        options: ["She is wasteful", "She is caring and finds win-win solutions", "She doesn't care about her garden", "She is easily defeated"],
+        correct: 1,
+        explanation: "Instead of getting rid of the groundhogs, Mrs. Chen planted extra vegetables for them while protecting her garden—showing she's caring and creative."
+      }
+    ]
+  },
+  {
+    level: 7,
+    difficulty: "Easy",
+    title: "The Talent Show",
+    text: `Mia had been practicing her piano piece for the school talent show for weeks. She knew every note perfectly. But as she sat backstage waiting for her turn, her hands started shaking. Her friend Carlos, who was performing a magic trick, noticed her nervousness.
+
+"You've got this, Mia," Carlos said encouragingly. "Remember, everyone here wants you to do well."
+
+When Mia's name was called, she walked onto the stage. The bright lights made it hard to see the audience. She sat at the piano and placed her fingers on the keys. Then her mind went blank. She couldn't remember how the song started!
+
+Mia took a deep breath, just like her piano teacher had taught her. She closed her eyes for a moment and thought about why she loved this piece—how beautiful and calm it made her feel. Suddenly, her fingers knew what to do. The music flowed naturally.
+
+When she finished, the audience clapped loudly. Mia realized that it wasn't about being perfect. It was about sharing something she loved. Even though she had been terrified, she had pushed through her fear. That made her performance even more special.`,
+    questions: [
+      {
+        question: "What was Mia's biggest challenge in the story?",
+        options: ["She didn't practice enough", "She forgot her sheet music", "She overcame nervousness and a memory lapse", "She didn't like her song"],
+        correct: 2,
+        explanation: "Mia was very nervous, and even had a moment on stage where her mind went blank and she couldn't remember the start."
+      },
+      {
+        question: "What helped Mia remember her piano piece?",
+        options: ["Carlos reminded her", "She looked at sheet music", "She took a breath and remembered why she loved the piece", "The audience helped her"],
+        correct: 2,
+        explanation: "Mia took a deep breath and thought about why she loved the piece and how it made her feel, which helped her fingers remember."
+      },
+      {
+        question: "What did Mia learn from this experience?",
+        options: ["Never perform in public again", "Perfection isn't as important as sharing what you love", "Talent shows are too stressful", "Always bring sheet music"],
+        correct: 1,
+        explanation: "Mia realized it wasn't about being perfect—it was about sharing something she loved, and pushing through fear made it special."
+      }
+    ]
+  },
+
+  // MEDIUM LEVEL (8-14)
+  {
+    level: 8,
+    difficulty: "Medium",
+    title: "The Time Capsule",
+    text: `When the construction workers were digging the foundation for the new library, they discovered something unexpected—a metal box buried three feet underground. The box was rusty and covered in dirt, but when they carefully opened it, they found it was a time capsule from 1975, exactly fifty years ago.
+
+Inside were letters from fifth-graders describing their lives, photographs of the old town square, newspapers, and even some vinyl records. The mayor decided to bring the time capsule to the current fifth-grade class at Riverside Elementary.
+
+Ms. Jackson's class was fascinated. They read letters from kids their age who had lived half a century earlier. One letter from a girl named Patricia said she dreamed of becoming an astronaut. Another from a boy named James talked about watching the Apollo missions on TV.
+
+"What's different?" Ms. Jackson asked her students.
+
+"They didn't have smartphones or the internet," said Derek.
+
+"But what's the same?" she pressed.
+
+The students realized that kids back then worried about tests, played with friends, and had big dreams—just like them. Ms. Jackson had her class create their own time capsule to be opened in 2075. They included drawings, letters, a flash drive with music, and predictions about the future. As they buried it in the school garden, each student wondered what life would be like when someone opened it again.`,
+    questions: [
+      {
+        question: "What realization did the students have about the kids from 1975?",
+        options: ["They were completely different from today's kids", "They had the same hopes and worries despite living in different times", "They were smarter than kids today", "They had easier lives"],
+        correct: 1,
+        explanation: "The students realized that despite not having technology, kids in 1975 worried about tests, played with friends, and had dreams—just like them."
+      },
+      {
+        question: "Why do you think Ms. Jackson asked what was 'the same' not just what was different?",
+        options: ["She wanted the class to finish quickly", "She wanted them to see the human connections across time", "She didn't think anything was different", "She was testing their memory"],
+        correct: 1,
+        explanation: "By asking what was the same, Ms. Jackson helped students recognize that despite technological changes, fundamental human experiences connect people across generations."
+      },
+      {
+        question: "What is the main purpose of a time capsule based on this story?",
+        options: ["To hide valuable items", "To preserve memories and connect past with future", "To store old newspapers", "To practice burying things"],
+        correct: 1,
+        explanation: "The story shows how time capsules preserve memories and create connections between people of different time periods."
+      }
+    ]
+  },
+  {
+    level: 9,
+    difficulty: "Medium",
+    title: "The Lighthouse Keeper's Decision",
+    text: `Captain Morrison had been the lighthouse keeper on Beacon Island for thirty years. Every night, he climbed the 200 steps to light the beacon that guided ships safely past the dangerous rocks. He knew every ship captain who sailed these waters, and they trusted him with their lives.
+
+One stormy evening, as Morrison prepared to light the beacon, he received terrible news. His daughter in the mainland hospital had taken a turn for the worse. The doctor said he should come immediately. The last ferry was leaving in twenty minutes.
+
+Morrison looked at the darkening sky. A storm was coming, and he knew at least three ships were scheduled to pass tonight. Without the beacon, they would be sailing blind through treacherous waters. But his daughter needed him.
+
+He stood at the base of the lighthouse stairs, torn between duty and family. Then he made his decision. He climbed those stairs one more time, lit the beacon, and called his assistant keeper who lived on the mainland. "Emergency," he said. "I need you to take the first morning boat and cover my shift. Guide me through the radio if you need to."
+
+Morrison caught the last ferry. His daughter recovered, and she later told him she always knew he would come. But she also understood why he had to light that beacon first. "You saved those sailors," she said. "That's who you are, Dad."`,
+    questions: [
+      {
+        question: "What was Captain Morrison's dilemma?",
+        options: ["Whether to quit his job", "Whether to repair the lighthouse", "Choosing between his duty to sailors and being with his daughter", "Deciding if he was too old to work"],
+        correct: 2,
+        explanation: "Morrison had to choose between staying to light the beacon for the ships or leaving immediately to see his sick daughter."
+      },
+      {
+        question: "What does Morrison's decision reveal about his character?",
+        options: ["He didn't care about his daughter", "He could balance responsibility and family by finding a solution", "He always chose work over family", "He was indecisive"],
+        correct: 1,
+        explanation: "Morrison didn't abandon either responsibility—he lit the beacon AND arranged coverage, then went to his daughter, showing he values both duty and family."
+      },
+      {
+        question: "Why did Morrison's daughter say she 'understood why he had to light that beacon first'?",
+        options: ["She was angry with him", "She recognized that her father's duty protected innocent lives", "She didn't really care", "She wanted him to quit"],
+        correct: 1,
+        explanation: "She understood that lighting the beacon wasn't about choosing work over her—it was about protecting the lives of sailors who depended on it."
+      }
+    ]
+  },
+  {
+    level: 10,
+    difficulty: "Medium",
+    title: "The Art Competition",
+    text: `Zoe had poured her heart into her painting for the Regional Art Competition. She had spent weeks perfecting every brushstroke of her landscape showing the sunset over the mountains near her home. She knew it was her best work yet.
+
+On the day of the competition, Zoe arrived early to submit her painting. As she walked through the exhibition hall, she froze. Hanging on the wall was a painting almost identical to hers—same mountains, same sunset, same composition. The artist was Blake, a student from another school.
+
+Zoe's stomach dropped. The judges would think one of them had copied the other! She approached Blake, who looked equally shocked. "I painted this from Sunset Point," Blake said defensively. "Where did you paint yours?"
+
+"Sunset Point," Zoe whispered. They had both chosen the same location, same time of day, and coincidentally, very similar perspectives.
+
+The judges noticed too. Instead of disqualifying either student, they did something unexpected. They hung both paintings side by side and awarded them a shared honorable mention. "This shows us something remarkable," the head judge announced. "Two young artists, working independently, captured the same beauty in similar yet unique ways. Both pieces have different feelings, different techniques, different souls."
+
+Zoe and Blake studied each other's work closely. Blake's painting was bolder and more dramatic; Zoe's was softer and more dreamlike. They were similar, but not the same. They exchanged contact information, both excited to have found someone who saw the world similarly. Sometimes the most unexpected situations lead to the best friendships.`,
+    questions: [
+      {
+        question: "How did Zoe likely feel when she first saw Blake's painting?",
+        options: ["Excited to see similar work", "Shocked and worried about being accused of copying", "Proud of Blake", "Uninterested"],
+        correct: 1,
+        explanation: "The text says Zoe's 'stomach dropped' and she worried the judges would think someone copied, showing shock and concern."
+      },
+      {
+        question: "What did the judges' decision teach about art and creativity?",
+        options: ["There's only one right way to paint something", "Similar subjects can be interpreted in unique ways", "Artists should avoid popular locations", "Copying is acceptable in art"],
+        correct: 1,
+        explanation: "The judges explained that both artists captured the same beauty in similar yet unique ways, with different feelings and techniques—showing art is personal interpretation."
+      },
+      {
+        question: "What is ironic about the outcome of this situation?",
+        options: ["Both students failed", "The competition was cancelled", "What seemed like a disaster led to recognition and friendship", "The judges couldn't tell the paintings apart"],
+        correct: 2,
+        explanation: "It's ironic that what initially seemed terrible (finding a similar painting) ended up being special (shared honor and new friendship)."
+      }
+    ]
+  },
+  {
+    level: 11,
+    difficulty: "Medium",
+    title: "The Last Game",
+    text: `Coach Williams gathered his basketball team in the locker room before the championship game. The Hawks had fought hard all season to get here, but they were facing the undefeated Tigers. Everyone expected the Tigers to win easily.
+
+"I know what everyone's saying," Coach Williams began. "They say we don't stand a chance. And you know what? Maybe they're right." The team looked surprised. Their coach always gave inspiring speeches about believing in victory.
+
+"But here's what I know for sure," he continued. "When you walk out there, you'll give everything you have. You'll play with heart. You'll support each other. And win or lose, you'll walk off that court knowing you gave your absolute best. That's what makes champions—not trophies, but character."
+
+The game was intense. The Hawks played better than they ever had, but the Tigers were simply more skilled. With thirty seconds left, the Hawks were down by fifteen points. Victory was impossible. Some players looked defeated.
+
+Then Captain Jordan called a timeout. "Coach is watching us," he told his teammates. "Let's show him what we're made of. These last thirty seconds—let's play them like they're the whole game."
+
+They did. They pressed hard on defense, made crisp passes, and sank two beautiful three-pointers. They lost 67-54, but when the buzzer rang, both teams were exhausted and smiling. The Tigers' captain shook Jordan's hand. "You guys never quit. That was a real game."
+
+In the locker room afterward, Coach Williams looked at his team with pride. "You just learned the most important lesson in sports—and in life. How you play when you can't win shows who you really are."`,
+    questions: [
+      {
+        question: "Why was Coach Williams' pre-game speech surprising?",
+        options: ["He told them they couldn't win and focused on character instead of victory", "He said they would definitely lose", "He didn't give a speech at all", "He was angry at the team"],
+        correct: 0,
+        explanation: "Instead of a typical inspiring speech about winning, Coach Williams acknowledged they might lose but emphasized that character and effort matter more than trophies."
+      },
+      {
+        question: "What was the most important moment in the story?",
+        options: ["When they scored three-pointers", "When they called a timeout", "When they played their hardest in the final seconds despite losing", "When they shook hands after"],
+        correct: 2,
+        explanation: "The key moment was when, facing certain defeat, the team chose to play the final thirty seconds with full effort—demonstrating character over outcome."
+      },
+      {
+        question: "What is the main theme of this story?",
+        options: ["Winning is everything in sports", "Natural talent beats hard work", "Character and effort matter more than winning", "Never play against better teams"],
+        correct: 2,
+        explanation: "The story emphasizes that how you play when facing defeat reveals your true character, which is more important than trophies or winning."
+      }
+    ]
+  },
+  {
+    level: 12,
+    difficulty: "Medium",
+    title: "The Debate",
+    text: `Aisha and Ben were the top two debaters in their school. They had been friends since third grade, but lately, tension had grown between them. The Regional Debate Championship was coming up, and only one of them would be chosen to represent their school.
+
+Their English teacher, Mr. Torres, announced the topic for the selection debate: "Should students have a say in creating school rules?" Aisha immediately knew she would argue for the motion, while Ben would argue against it. They had one week to prepare.
+
+Aisha worked hard on her arguments. She believed strongly that students should have input in rules that affected them. She gathered statistics showing that schools with student councils had better attendance and fewer discipline problems.
+
+Ben took a different approach. He researched too, but he also did something unexpected—he talked to Aisha. "I want to understand why you believe this so strongly," he said. Aisha was surprised but explained her reasoning. They discussed the topic for an hour, challenging each other's ideas respectfully.
+
+The day of the debate arrived. Both students presented powerful arguments. Aisha emphasized student responsibility and engagement. Ben countered that adults have experience students lack and that too many voices can make decision-making chaotic.
+
+What impressed the judges most wasn't just their arguments—it was how they listened to each other. When Aisha made a strong point, Ben acknowledged it before presenting his counter-argument. When Ben raised a valid concern, Aisha incorporated it into her rebuttal, showing she understood the complexity.
+
+In the end, Aisha won the selection. But Ben wasn't bitter. "You deserved it," he told her genuinely. "Your arguments were stronger, and you made me think about things differently."
+
+"You made me stronger too," Aisha replied. "Arguing with you helped me understand the other side." Their friendship had been tested, but instead of breaking, it had grown stronger. They had learned that the best debates aren't about destroying your opponent—they're about finding truth together.`,
+    questions: [
+      {
+        question: "What made Aisha and Ben's debate different from typical competitions?",
+        options: ["They used more statistics", "They showed mutual respect and really listened to each other", "They were nervous", "They prepared for a shorter time"],
+        correct: 1,
+        explanation: "The judges were impressed because both debaters acknowledged each other's strong points and listened respectfully, showing debate is about finding truth, not just winning."
+      },
+      {
+        question: "How did Ben's approach to preparation help both debaters?",
+        options: ["He copied Aisha's research", "He talked to Aisha to understand her perspective better", "He only focused on his own arguments", "He didn't prepare much"],
+        correct: 1,
+        explanation: "Ben talked to Aisha to understand why she believed so strongly in her position, which helped both of them develop stronger, more nuanced arguments."
+      },
+      {
+        question: "What is the deeper lesson about disagreement in this story?",
+        options: ["Always agree with your friends", "Avoid debating with friends", "Respectful disagreement can strengthen both arguments and friendships", "Winning is all that matters"],
+        correct: 2,
+        explanation: "The story shows that when people disagree respectfully and genuinely listen to each other, both people grow and relationships can become stronger rather than damaged."
+      }
+    ]
+  },
+  {
+    level: 13,
+    difficulty: "Medium",
+    title: "The Community Garden",
+    text: `The empty lot on Maple Street had been an eyesore for years—overgrown with weeds, littered with trash, surrounded by a chain-link fence. Mrs. Patel, who lived next door, decided it was time for a change. She proposed turning it into a community garden.
+
+Not everyone was enthusiastic. Mr. Chen, who owned the hardware store, worried about property values. "Gardens attract pests," he argued at the town meeting. "And who's going to maintain it? In two years, it'll be worse than it is now."
+
+Teenagers from the neighborhood had different concerns. They wanted the lot turned into a basketball court. "We need places to play," spoke up Marcus, a high school student. "There's already a community garden across town."
+
+Mrs. Patel listened to everyone carefully. Then she proposed a compromise: use half the lot for a garden and half for a small basketball court. She also suggested forming a committee with representatives from different age groups to maintain it.
+
+The compromise wasn't perfect for anyone, but it was acceptable to everyone. Over the next few months, something remarkable happened. Mr. Chen donated supplies from his hardware store and taught teenagers how to build the raised garden beds. Marcus and his friends helped elderly neighbors plant vegetables. Parents brought young children to water plants after basketball games.
+
+The lot became more than just a garden or a court—it became a gathering place where neighbors who had rarely spoken now worked side by side. Mrs. Patel realized that the real goal had never been just about the garden or the basketball court. It was about bringing the community together. Sometimes the solution to a problem creates something more valuable than anyone originally imagined.`,
+    questions: [
+      {
+        question: "What was the real conflict in this story?",
+        options: ["The lot was too small", "Different community members had different visions for the same space", "Nobody wanted to use the lot", "Mrs. Patel wanted to keep the lot empty"],
+        correct: 1,
+        explanation: "The conflict was that different groups (Mrs. Patel, Mr. Chen, teenagers) all had different ideas about what should be done with the empty lot."
+      },
+      {
+        question: "Why was Mrs. Patel's compromise successful?",
+        options: ["Everyone got exactly what they wanted", "Nobody cared about the outcome", "It addressed different needs and included everyone in maintaining it", "It was the cheapest option"],
+        correct: 2,
+        explanation: "The compromise worked because it partially satisfied different groups and, more importantly, created a committee where everyone contributed to maintaining it together."
+      },
+      {
+        question: "What is the story's message about community problem-solving?",
+        options: ["The person with the first idea should always win", "Perfect solutions exist for every problem", "Compromise and collaboration can create unexpected benefits", "Communities should avoid making changes"],
+        correct: 2,
+        explanation: "The story shows that while compromise might not give everyone exactly what they want, working together can create something more valuable—community connection."
+      }
+    ]
+  },
+  {
+    level: 14,
+    difficulty: "Medium",
+    title: "The Scholarship Essay",
+    text: `Maya stared at the blank computer screen. The essay prompt for the scholarship was simple: "Describe a challenge you've overcome and how it shaped who you are today." She had twenty-four hours until the deadline, and she had no idea what to write.
+
+Her first instinct was to write about winning the state math competition. That sounded impressive. But as she began typing, the words felt hollow. Winning felt good, but had it really been a challenge? Math had always come easily to her.
+
+She thought about writing about her family immigrating from Mexico when she was seven. That was certainly challenging. But as she outlined those ideas, she realized she was writing what she thought the scholarship committee wanted to hear, not her truth.
+
+Frustrated, Maya took a walk. As she passed the elementary school, she saw her younger brother Miguel playing basketball with his friends. Miguel had struggled with reading throughout elementary school. Maya remembered all the nights she had sat with him, patiently helping him sound out words, never making him feel stupid even when she was tired from her own homework.
+
+She rushed home and began writing about those evenings with Miguel. She wrote about how watching him struggle taught her that intelligence comes in many forms. She wrote about how his determination—practicing the same paragraph over and over until he got it right—taught her more about perseverance than any math trophy ever could. She wrote about how helping him succeed made her want to become a teacher.
+
+As she finished, Maya realized something important. The most meaningful challenges aren't always the ones with medals and recognition. Sometimes they're quiet moments of patience and love that nobody else sees—but they shape who we become in profound ways.
+
+Maya submitted her essay with five minutes to spare. Three weeks later, she received an email: she had won the scholarship. The committee wrote that her essay stood out because it was "genuinely reflective and revealed true character growth." Maya printed out the email and showed it to Miguel. "This is really your scholarship," she told him. "You earned it too."`,
+    questions: [
+      {
+        question: "Why did Maya reject her first two essay ideas?",
+        options: ["They weren't true stories", "They weren't challenging enough", "They felt impressive but didn't represent her genuine personal growth", "She ran out of time"],
+        correct: 2,
+        explanation: "Maya realized the math competition wasn't truly challenging for her, and the immigration story felt like what she thought they wanted to hear rather than her authentic truth."
+      },
+      {
+        question: "What does the story suggest about the nature of meaningful challenges?",
+        options: ["Only public achievements matter", "The most important challenges are often quiet and personal", "Academic success is the best topic for essays", "Challenges should always have visible rewards"],
+        correct: 1,
+        explanation: "The story emphasizes that the most meaningful challenges aren't always the ones with medals—sometimes they're quiet moments that profoundly shape who we become."
+      },
+      {
+        question: "What character trait did the scholarship committee most value in Maya's essay?",
+        options: ["Her math skills", "Her ability to write quickly", "Her genuine reflection and recognition of character growth", "Her teaching ability"],
+        correct: 2,
+        explanation: "The committee specifically noted that Maya's essay stood out because it was 'genuinely reflective and revealed true character growth,' valuing authenticity over achievements."
+      }
+    ]
+  },
+
+  // HARD LEVEL (15-20)
+  {
+    level: 15,
+    difficulty: "Hard",
+    title: "The Archaeological Discovery",
+    text: `Dr. Sarah Mitchell brushed away centuries of dust from the clay tablet, her hands trembling slightly. After three years of excavation at this ancient Mesopotamian site, her team had finally found something extraordinary. The cuneiform inscriptions on the tablet appeared to be a student's homework from nearly 4,000 years ago—and it contained mistakes.
+
+"Look at this," she called to her colleague, Professor James Chen. "The student got several calculations wrong. The teacher even marked corrections in the margin."
+
+James examined the tablet carefully. "This is remarkable. We've found administrative records, religious texts, and royal decrees, but this is just... everyday life. A student struggling with math problems, just like students do today."
+
+What fascinated Sarah most wasn't the mathematical content—it was what the tablet revealed about human nature. The student's handwriting became sloppier toward the end of the tablet, suggesting fatigue or boredom. There was even what appeared to be a doodle in the corner—an attempt to draw something that looked like a bird.
+
+As news of the discovery spread, people around the world became interested not because the tablet revealed anything historically significant about ancient empires or wars, but because it was so relatable. Here was proof that children 4,000 years ago got tired of homework, made careless mistakes, and daydreamed during lessons—just like children today.
+
+The tablet went on display at the National Museum, and Sarah was invited to speak at schools. She told students, "This tablet reminds us that the fundamental human experience hasn't changed. Ancient Mesopotamian teenagers worried about their assignments, modern teenagers worry about their assignments, and teenagers 4,000 years from now will probably worry about theirs too. What connects us across time isn't technology or empires—it's our shared humanity."
+
+A high school student raised her hand during one presentation. "So you're saying my homework might end up in a museum someday?"
+
+Sarah smiled. "Only if you make it interesting enough that someone wants to preserve it for 4,000 years. That's the real question—what are we creating today that will help future people understand who we were?"`,
+    questions: [
+      {
+        question: "What made this archaeological discovery particularly significant?",
+        options: ["It was the oldest tablet ever found", "It revealed important historical battles", "It showed the timeless nature of human experience through everyday life", "It contained valuable treasures"],
+        correct: 2,
+        explanation: "The tablet was significant not because of historical importance but because it showed that fundamental human experiences—like students struggling with homework—are timeless."
+      },
+      {
+        question: "What can be inferred about Dr. Mitchell's perspective on archaeology?",
+        options: ["She only values major historical discoveries", "She believes everyday artifacts reveal important truths about humanity", "She thinks ancient civilizations were more advanced", "She prefers finding treasures to tablets"],
+        correct: 1,
+        explanation: "Dr. Mitchell's focus on and enthusiasm for an ordinary homework tablet shows she values how everyday artifacts illuminate universal human experiences across time."
+      },
+      {
+        question: "What deeper question does the story raise about our own time?",
+        options: ["How can we preserve homework better?", "Should we study ancient languages?", "What are we creating that will help future generations understand our humanity?", "Why do students still do homework?"],
+        correct: 2,
+        explanation: "Dr. Mitchell's final question challenges us to think about what we're creating today that reveals our humanity and will be meaningful to people thousands of years in the future."
+      }
+    ]
+  },
+  {
+    level: 16,
+    difficulty: "Hard",
+    title: "The Bridge Builder's Dilemma",
+    text: `Elena Rodriguez stood at the edge of the canyon, studying the blueprints for what would be the longest suspension bridge in South America. As lead engineer, she had designed every cable, every support beam, every safety feature. The bridge would connect two isolated mountain communities, reducing a four-hour dangerous mountain road journey to a fifteen-minute drive.
+
+The project was on schedule and under budget—until the geologist submitted his latest report. The rock formation on the eastern side showed signs of instability. Not immediate danger, but concerning enough that the geologist recommended moving the bridge location two kilometers north.
+
+Moving the bridge would solve the geological problem, but it would create a new one. The northern location would place the bridge directly through land sacred to the indigenous Quechua community. The elders had already approved the current location after months of negotiation, understanding its importance for their community's economic survival. Moving it would break that trust.
+
+Elena called a meeting with all stakeholders—the construction company eager to maintain schedule, the government officials who had staked their reputations on this project, the Quechua elders, and her engineering team. She presented both options honestly: stay with the current location and implement expensive additional support structures to mitigate geological risks, or move to the safer northern location and renegotiate with the community.
+
+The construction company pushed for staying put. "The geologist said it's not immediate danger. We can't afford delays." But Elena's mentor, a retired engineer, had once told her: "Any bridge you build must stand for generations. Never compromise safety for convenience."
+
+Elena made a decision that surprised everyone. "We're moving the bridge north, but not through the sacred land. We'll extend the design by an additional kilometer, going around the sacred site. Yes, it will cost more and take longer. Yes, it's more complex engineering. But we'll have the safest possible structure and we'll honor our commitments to the community."
+
+The government officials protested the cost increases. Elena stood firm. "If this bridge fails in twenty years because we ignored geological warnings, the cost won't be measured in money—it'll be measured in lives and broken trust. I won't sign off on anything less than the safest design."
+
+The project took an extra eight months and exceeded budget by eighteen percent. But when the bridge opened, both communities celebrated together. The Quechua elders performed a blessing ceremony, thanking Elena for honoring both safety and sacred land. Elena realized that the best engineering isn't just about mathematics and materials—it's about understanding that infrastructure serves people, not just progress.`,
+    questions: [
+      {
+        question: "What made Elena's decision complex?",
+        options: ["The bridge was too expensive", "She had to balance safety, cultural respect, budget, and time pressures", "She didn't have enough materials", "The communities didn't want the bridge"],
+        correct: 1,
+        explanation: "Elena faced competing priorities: geological safety concerns, respect for sacred land, financial constraints, schedule pressure, and maintaining community trust—all requiring careful consideration."
+      },
+      {
+        question: "What principle guided Elena's final decision?",
+        options: ["Staying under budget at all costs", "Finishing quickly to maintain schedule", "Never compromising long-term safety and honoring commitments to communities", "Choosing the easiest engineering solution"],
+        correct: 2,
+        explanation: "Elena prioritized long-term safety and cultural respect over cost and schedule, remembering her mentor's advice and recognizing that bridges must serve communities, not just progress."
+      },
+      {
+        question: "What does the story suggest about ethical decision-making in professional contexts?",
+        options: ["Cost should always be the primary factor", "Ethical decisions are simple and obvious", "Complex situations require balancing multiple values while maintaining core principles", "Technical expertise is all that matters"],
+        correct: 2,
+        explanation: "The story illustrates that ethical professional decisions often require balancing competing interests while maintaining core principles like safety and cultural respect, even when it's difficult or expensive."
+      }
+    ]
+  },
+  {
+    level: 17,
+    difficulty: "Hard",
+    title: "The Inheritance",
+    text: `When Mr. Harrison's will was read, the entire family was shocked. The wealthy businessman had left his considerable fortune not to his three children, but to his grandchildren—with an unusual condition. Each grandchild would receive their inheritance only after completing a task that their grandfather had specifically designed for them, based on what he believed they most needed to learn.
+
+For Jessica, the straight-A student headed to an Ivy League university, the task seemed absurd: spend six months working minimum wage at a restaurant or retail store, and write weekly reflections about the experience. No using family connections, no special treatment.
+
+Jessica was insulted. "I've worked hard my whole life," she protested to her siblings. "Why do I have to prove myself by flipping burgers?"
+
+Her brother Michael received a different task: give away $50,000 of his inheritance to three different causes he personally believed in, but he had to research and visit organizations himself, not just write checks. Michael, who had always struggled in school but inherited his grandfather's business sense, was already running a successful startup. The money meant less to him than the principle.
+
+The youngest, Sophie, had to spend a year volunteering at a hospice care center. Sophie was terrified of death and suffering—everyone knew it. Her grandfather's task seemed almost cruel.
+
+All three grandchildren were given a choice: complete their task and receive their inheritance, or decline and the money would go to charity. Jessica almost refused outright, but curiosity got the better of her. She took a job at a diner in a part of town she'd never visited.
+
+The first weeks were humiliating. Jessica dropped plates, mixed up orders, and ached from standing all day. But gradually, something shifted. She learned her coworkers' stories—single mothers working two jobs, immigrants sending money home to family, students like her juggling school and bills. She learned that intelligence came in forms not measured by SATs. Maria, her supervisor, could calculate complicated split checks in her head faster than Jessica could with a calculator. Tom, who hadn't finished high school, was the best problem-solver she'd ever met when equipment broke down.
+
+Her weekly reflections evolved from bitter complaints to genuine insights. She wrote about how assumption of superiority had blinded her to people's strengths, how hard work didn't always correlate with reward, how dignity wasn't tied to job titles.
+
+When the six months ended, Jessica qualified for her inheritance. But at the final family meeting where they would officially receive their money, something unexpected happened. All three grandchildren stood up together.
+
+"We've talked," Michael said, "and we've decided to do something different with part of our inheritance."
+
+They had each completed their tasks. Michael had discovered a passion for educational nonprofits. Sophie had overcome her fears and found purpose in hospice work. And Jessica had learned that privilege came with responsibility.
+
+Together, they established the "Harrison Foundation" with a third of their combined inheritance, creating scholarships for people like her diner coworkers—those who had talent and drive but lacked opportunity. The rest they kept, but they managed it differently now, with humility and purpose.
+
+Jessica framed her final reflection and hung it in her college dorm room. The last line read: "Grandfather didn't give me a task to humble me. He gave me a task because he saw that humility was the one thing my education couldn't teach me. The greatest inheritance he left wasn't money—it was sight."`,
+    questions: [
+      {
+        question: "What was Mr. Harrison's true purpose in creating these specific tasks?",
+        options: ["To punish his grandchildren", "To test if they were worthy of money", "To teach each grandchild something their life circumstances had prevented them from learning", "To delay giving them the inheritance"],
+        correct: 2,
+        explanation: "Each task targeted what the grandfather believed each grandchild most needed to learn: Jessica needed to understand different forms of intelligence and dignity in all work, Michael needed to engage personally with giving, and Sophie needed to confront mortality."
+      },
+      {
+        question: "How did Jessica's perspective transform throughout her experience?",
+        options: ["She learned that minimum wage jobs are easy", "She went from viewing service work as beneath her to recognizing intelligence, dignity, and worth in all work", "She decided to quit college", "She realized she was always right"],
+        correct: 1,
+        explanation: "Jessica's transformation was from viewing service work as humiliating to recognizing that intelligence comes in many forms, that dignity isn't tied to job titles, and that her privilege had created blind spots."
+      },
+      {
+        question: "What is the story's most important theme?",
+        options: ["Money corrupts people", "Education is overrated", "True inheritance includes wisdom, perspective, and understanding that can't be taught in traditional ways", "Hard work always leads to success"],
+        correct: 2,
+        explanation: "The story's core theme is that the most valuable inheritance isn't monetary—it's the wisdom, perspective, and character growth that come from experiences outside our comfort zones."
+      }
+    ]
+  },
+  {
+    level: 18,
+    difficulty: "Hard",
+    title: "The Journalist's Choice",
+    text: `Amara Singh had been chasing the story for eight months. As an investigative journalist, she had uncovered evidence of corruption in the city's housing department—officials taking bribes to approve substandard construction. Buildings that should never have passed inspection were being rubber-stamped, putting thousands of residents at risk.
+
+She had documents, recorded conversations, and a whistleblower willing to testify. The story was solid, and it would make her career. She scheduled the article to run in Sunday's paper—the edition with the highest readership.
+
+On Friday evening, Amara received an unexpected call from David Chen, the deputy housing director and one of the officials implicated in her investigation. "Can we meet?" he asked. "Off the record. Please."
+
+Against her editor's advice, Amara agreed to meet at a neutral café. David arrived looking exhausted. "I know what you're about to publish," he began. "And most of it is true. I did accept money to overlook inspection failures. I did sign off on buildings I knew were unsafe."
+
+"Then why are we meeting?" Amara asked coldly.
+
+"Because I want you to know why—not as an excuse, but as context." David explained that his daughter had been diagnosed with a rare form of leukemia three years ago. His insurance had maxed out. The experimental treatment that saved her life cost over $400,000. The bribes had paid for her medical care.
+
+"I'm not asking you to kill the story," David continued. "I deserve whatever consequences come. I just wanted you to know that the person you're about to destroy in print isn't a cartoon villain. I'm a father who made a terrible choice when I couldn't see another way. Publish the story—but please, verify that the current construction projects have been re-inspected. Because despite what I did wrong, I made sure that after my daughter recovered, I secretly flagged the worst buildings for re-inspection. Some were condemned. Others were fixed. No one knows I did that because I couldn't admit to the original corruption."
+
+Amara spent all of Saturday investigating David's claims. They checked out—seven buildings had been re-inspected and either fixed or condemned. Residents had been relocated. David had tried to undo some of the damage he'd caused, albeit secretly and incompletely.
+
+Now Amara faced a dilemma. The story as written was true and important—systemic corruption endangered public safety. But it was incomplete. It painted David as purely corrupt when the reality was more complex. Including his daughter's illness might seem like she was making excuses for corruption. Leaving it out meant presenting a distorted picture of a human being making desperate choices.
+
+Her editor's position was clear: "Personal circumstances don't excuse corruption. The public has a right to safe buildings. His motivation is irrelevant to the harm he caused."
+
+But Amara's journalism professor had taught her something else: "Truth isn't just about facts. It's about context. The whole truth serves the public better than selected facts, even when that truth is complicated."
+
+Amara rewrote the article. She included all the corruption evidence, the systemic failures, the risks to public safety. But she also included David's story—not as an excuse, but as a window into how desperation can lead good people to make harmful choices. She wrote about the gaps in healthcare that put families in impossible positions. She explained about the secret re-inspections, presenting them not as redemption but as incomplete attempts at damage control.
+
+The article sparked the change she'd hoped for—investigations, reforms, new oversight procedures. But it also sparked a different conversation about healthcare costs and the decisions people make under financial desperation. Several officials resigned, including David. He faced legal consequences. But readers also contacted their representatives about healthcare reform.
+
+Six months later, Amara received a letter from a reader: "Your article about the housing corruption changed how I think about public policy. Problems aren't always simple. People aren't always villains or heroes. You showed me that demanding accountability doesn't mean abandoning compassion. That's real journalism."
+
+Amara kept the letter. She'd learned that the hardest stories to write aren't the ones where right and wrong are clear—they're the ones where they're tangled together, and disentangling them truthfully requires courage, nuance, and a commitment to the whole truth, even when it's uncomfortable.`,
+    questions: [
+      {
+        question: "What was Amara's ethical dilemma?",
+        options: ["Whether to publish the story at all", "How to present complete truth that included both corruption and complex human motivation", "Whether to protect David completely", "Whether journalism is important"],
+        correct: 1,
+        explanation: "Amara struggled with how to tell the complete truth—exposing corruption while also providing context about desperate circumstances, without excusing harm or distorting facts."
+      },
+      {
+        question: "Why did Amara ultimately decide to include David's personal story?",
+        options: ["She felt sorry for him", "She wanted to excuse corruption", "Her professor taught her that whole truth includes context, even when complicated", "Her editor demanded it"],
+        correct: 2,
+        explanation: "Amara's professor taught her that truth isn't just facts—it's context. Including David's story didn't excuse corruption but provided complete truth that better served the public understanding."
+      },
+      {
+        question: "What does the story suggest about the nature of ethical decision-making in complex situations?",
+        options: ["Ethics are always clear-cut", "Personal circumstances excuse any behavior", "Real ethical thinking requires holding multiple truths simultaneously—accountability AND compassion", "Journalists should never include personal context"],
+        correct: 2,
+        explanation: "The story illustrates that mature ethical thinking isn't about choosing between accountability OR compassion, but holding both simultaneously—demanding consequences while understanding complexity and working toward systemic solutions."
+      }
+    ]
+  },
+  {
+    level: 19,
+    difficulty: "Hard",
+    title: "The Algorithm's Creator",
+    text: `Dr. Kenji Tanaka stood before the board of directors, his stomach churning. For five years, he had led the team developing "EduMatch"—an AI algorithm that helped colleges evaluate applicants. The system analyzed thousands of data points beyond grades and test scores: extracurricular patterns, essay writing styles, recommendation letter language, even the socioeconomic indicators from zip codes. It could predict with 89% accuracy which students would succeed academically and graduate.
+
+Colleges loved it. The algorithm was objective, immune to bias, and efficient. It had evaluated over two million applications. Kenji's company was now worth billions, and universities were signing contracts for even more comprehensive versions of the system.
+
+But something had been bothering Kenji for months. His daughter Yuki, now a college sophomore, had come home for winter break and told him about her roommate Sara. "She's brilliant, Dad. She's writing a thesis on quantum computing that her professors say is graduate-level work. But she almost didn't get into college—she told me her application was flagged as 'low probability of success' by some algorithm until a dean of admissions personally overrode it."
+
+Kenji had pulled Sara's application file. The algorithm had been correct according to its parameters—Sara's high school had low funding, her standardized test scores were below average, her essay showed linguistic patterns associated with non-native English speakers, and her zip code correlated with high college dropout rates. Every data point suggested risk.
+
+But the algorithm couldn't measure determination. It couldn't quantify the fact that Sara had taught herself programming using free online resources because her school didn't offer computer science. It couldn't factor in that English was her third language and she'd learned it in four years while also translating for her immigrant parents at doctor's appointments and parent-teacher conferences. It couldn't account for the fact that lower test scores reflected test anxiety and lack of prep courses, not lack of intelligence.
+
+The algorithm had done exactly what Kenji designed it to do: predict based on patterns. But in doing so, it was perpetuating systemic inequities, giving mathematical legitimacy to socioeconomic barriers.
+
+Now, standing before his board, Kenji was proposing something radical: completely redesigning EduMatch to actively counteract bias rather than just claim to be neutral. This meant lower accuracy rates initially, angry clients who trusted the numbers, and potentially significant financial losses.
+
+"Our algorithm isn't broken," one board member argued. "It's 89% accurate. You can't argue with data."
+
+"But what is it accurate at predicting?" Kenji countered. "It predicts who will succeed in the current system—a system built on advantages and privileges. It doesn't predict potential. It doesn't predict determination. It doesn't predict who could succeed if given an opportunity. We built a system that optimizes for replicating existing patterns. We need one that optimizes for discovering unrealized potential."
+
+The board was split. Half wanted to maintain the current profitable system. Half worried about the ethical implications but feared financial consequences. The CEO gave Kenji an ultimatum: "You have six months to prove that a bias-correcting algorithm can work without destroying accuracy. If it fails, we maintain the current system and you step down as lead developer."
+
+Kenji and his team worked obsessively. They didn't try to make the algorithm "blind" to demographic factors—research had shown that pretending not to see difference perpetuated inequality. Instead, they built an algorithm that actively looked for indicators of potential in unexpected places: students who took initiative to learn beyond their school's offerings, those who overcame significant obstacles, those whose trajectory showed dramatic improvement, those whose accomplishments were outsized relative to available resources.
+
+The new algorithm was messier. Its accuracy rate dropped to 76% in predicting traditional metrics of success. But something remarkable happened—students it recommended who the old algorithm would have rejected showed dramatic growth once enrolled. They were more likely to pursue challenging majors, more likely to contribute novel research, and more likely to become first-generation college graduates who returned to help their communities.
+
+The algorithm wasn't predicting who would succeed under current conditions—it was predicting who would flourish if given opportunity.
+
+When Kenji presented the results, he included a case study: Sara, his daughter's roommate, whose quantum computing thesis was now being submitted to academic journals. "The old algorithm would have excluded her," he told the board. "The question isn't whether our algorithm is accurate. The question is: what are we trying to be accurate about? Are we trying to predict who will fit the existing mold, or are we trying to identify who has unrealized potential? Because those are two completely different objectives, and they have completely different impacts on society."
+
+The board approved the new system. Not all clients accepted it—some colleges preferred the comfort of higher accuracy rates and familiar patterns. But others embraced it, and over time, they began to see more diverse student bodies not just in demographics, but in perspectives and approaches to problem-solving.
+
+Kenji never claimed the new algorithm was perfect—he was honest about its limitations and continued to improve it. But he had learned something crucial: technology isn't neutral. Every algorithm encodes choices about what to value and what to measure. The question isn't whether to have values in our systems—values are already there. The question is whether we'll be intentional about ensuring those values align with equity and opportunity, even when it's more complex and less profitable.
+
+Five years later, Kenji gave a lecture at a major tech conference. A student raised her hand. "How do you respond to critics who say your algorithm sacrifices objective accuracy for subjective social goals?"
+
+Kenji smiled. "I ask them to define what they mean by objective. The original algorithm was objective by one definition—it accurately predicted outcomes in an inequitable system. But objectivity without justice isn't neutral. It's just a more sophisticated way of maintaining the status quo. Real objectivity means asking whether our tools create a more just future, not just whether they efficiently replicate the past."`,
+    questions: [
+      {
+        question: "What fundamental problem did Kenji identify with the original EduMatch algorithm?",
+        options: ["It made too many errors", "It was too slow", "It accurately predicted success in an inequitable system, thus perpetuating systemic barriers", "It wasn't profitable enough"],
+        correct: 2,
+        explanation: "Kenji realized the algorithm wasn't broken technically—it was accurately predicting who would succeed in the current system. But in doing so, it gave mathematical legitimacy to existing inequities and barriers."
+      },
+      {
+        question: "How did Kenji's approach to addressing bias differ from typical 'neutral' algorithms?",
+        options: ["He ignored demographic information completely", "He actively looked for potential in unexpected places rather than pretending to be blind to difference", "He made the algorithm simpler", "He only used test scores"],
+        correct: 1,
+        explanation: "Rather than trying to make the algorithm 'blind' to demographics (which perpetuates inequality), Kenji built one that actively looked for indicators of potential in contexts where resources were limited—recognizing that equal treatment isn't the same as equitable opportunity."
+      },
+      {
+        question: "What is the story's central argument about technology and values?",
+        options: ["Technology should never be used in admissions", "All algorithms are biased and should be abandoned", "Technology inevitably encodes values; the key is being intentional about aligning those values with equity and justice", "Higher accuracy is always better than fairness"],
+        correct: 2,
+        explanation: "The story argues that technology isn't neutral—it always encodes choices about what to value. The critical question isn't whether to have values in systems, but whether we'll be intentional about ensuring those values promote equity, even when it's more complex."
+      }
+    ]
+  },
+  {
+    level: 20,
+    difficulty: "Hard",
+    title: "The Silence of Understanding",
+    text: `Professor Elizabeth Okonkwo had taught philosophy for thirty years, but she had never had a student like Marcus Rivera. He sat in the back row of her Ethics seminar, never volunteering answers, rarely making eye contact, but his essays revealed a mind that grasped nuances most graduate students missed.
+
+One Tuesday, Elizabeth assigned a challenging topic: "Is there moral value in suffering?" It was a question philosophers had debated for millennia, touching on everything from religious theodicy to existential meaning-making.
+
+The class discussion was lively. Students cited Nietzsche, Buddhist philosophy, Job from the Hebrew Bible. Then Marcus raised his hand—a rare occurrence. "I think the question is wrong," he said quietly.
+
+The classroom fell silent. Students didn't usually challenge the premise of a prompt. "Explain," Elizabeth encouraged.
+
+"The question asks if there's moral value in suffering, as if suffering is this abstract concept we can debate. But suffering isn't abstract to people who experience it. My younger sister has cystic fibrosis. When she can't breathe, when she's hospitalized for weeks, when she has to do hours of painful treatments every day just to stay alive—there's no moral value in that. There's just suffering. The only value is in how people respond to it: the nurses who stay past their shifts, my parents who never complain, my sister who still makes jokes to make us feel better. But that's not the suffering having value—that's love having value despite suffering."
+
+Another student jumped in. "But doesn't surviving suffering build character and resilience?"
+
+Marcus's voice remained calm but grew firmer. "That's something people who haven't really suffered say to make themselves feel like suffering serves a purpose. My sister didn't need to develop cystic fibrosis to develop character. She's not grateful for her disease. She'd trade all her 'resilience' for healthy lungs in a heartbeat. The idea that suffering builds character just lets us avoid asking why we tolerate so much preventable suffering in the world."
+
+Elizabeth watched the class process this. It was an uncomfortable moment—Marcus wasn't playing the intellectual game they were used to playing. He was speaking from lived experience that gave his philosophical position a weight that citations couldn't match.
+
+"But philosophers throughout history have argued about suffering's meaning," protested another student. "Are you saying all of them are wrong?"
+
+"I'm saying that when philosophers had chronic illnesses, they tended to write about it differently than healthy philosophers writing theoretically about suffering. When you read Frederick Douglass writing about slavery versus philosophers theorizing about freedom, the difference is striking. Douglass isn't interested in whether slavery built his character—he's interested in abolishing it. Maybe we should listen more to people describing their actual experiences and less to people theorizing about experiences they haven't had."
+
+Elizabeth recognized a crucial teaching moment. "Marcus raises an important point about epistemology—the philosophy of knowledge. Can we truly understand something we haven't experienced? And if we can't, what does that mean for how we approach philosophy?"
+
+The discussion continued, but it had fundamentally shifted. Students began questioning not just their positions on suffering, but their confidence in holding positions about experiences they hadn't lived. Some became defensive, others thoughtful.
+
+After class, Elizabeth asked Marcus to stay. "That was brave," she told him. "You disrupted the comfortable distance this class usually maintains from difficult topics."
+
+Marcus looked uncomfortable. "I probably shouldn't have gotten so personal. Philosophy is supposed to be about arguments, not feelings."
+
+"Who told you that?" Elizabeth asked gently. "Some of the most important philosophy has come from people reflecting deeply on lived experience—from feminist philosophy to critical race theory to disability studies. Yes, philosophy requires careful reasoning. But it also requires humility about the limits of our knowledge. You reminded this class that their intellectual theories have real implications for real people. That's not less philosophical—it's more honest philosophy."
+
+The next week, Elizabeth restructured her syllabus. She added readings from philosophers who wrote from marginalized perspectives, people theorizing about oppression they had experienced rather than observed. She required students to interview someone with direct experience of whatever issue they were writing about, and to reflect on how that conversation changed their thinking.
+
+Some students complained to the department head that the course had become "too political" and "less rigorous." Others said it was the first philosophy class where they felt they were engaging with real questions rather than intellectual exercises.
+
+Elizabeth defended her changes: "Philosophy that maintains distance from lived experience isn't more objective—it's just more sheltered. Teaching students to reason carefully is crucial. But teaching them to recognize the limits of their knowledge and to listen to perspectives born from experiences they haven't had isn't less rigorous. It's a different kind of rigor. It's the discipline of intellectual humility."
+
+Years later, Marcus became a bioethicist specializing in patient advocacy. He gave a lecture at his alma mater where he said, "Professor Okonkwo taught me that speaking from experience isn't less intellectual than speaking from theory—sometimes it's more honest. She taught me that philosophy at its best doesn't just analyze the world from a distance. It engages with the world up close, even when that's uncomfortable. The questions that matter most aren't the ones we can debate comfortably in seminar rooms. They're the ones that live in the space between theory and experience, and navigating that space requires both careful thinking and careful listening."
+
+In the audience, Elizabeth smiled. She had spent three decades teaching students to argue. Marcus had taught her something equally important—sometimes the most philosophical thing you can do is listen to someone say, "This is what it's actually like," and let that testimony complicate your theories rather than trying to fit their experience into your framework.`,
+    questions: [
+      {
+        question: "What fundamental tension does Marcus identify in how philosophy approaches suffering?",
+        options: ["Philosophers disagree too much", "There aren't enough books on suffering", "Abstract philosophical debate about suffering often ignores the actual lived experience of people who suffer", "Philosophy should avoid emotional topics"],
+        correct: 2,
+        explanation: "Marcus challenges the class's comfortable intellectual distance, pointing out that theorizing about suffering is fundamentally different from experiencing it, and that philosophy often prioritizes abstract debate over lived testimony."
+      },
+      {
+        question: "How does Professor Okonkwo's understanding of rigor in philosophy evolve?",
+        options: ["She decides philosophy should only include personal stories", "She realizes that intellectual humility and listening to lived experience represent a different but equally important form of rigor", "She stops requiring arguments in her class", "She agrees that philosophy has become too political"],
+        correct: 1,
+        explanation: "Okonkwo redefines rigor to include not just careful reasoning but also intellectual humility—recognizing the limits of one's knowledge and learning to listen to perspectives born from experiences one hasn't had."
+      },
+      {
+        question: "What does the story ultimately suggest about the relationship between theory and lived experience?",
+        options: ["Theory is always wrong", "Experience makes theory unnecessary", "The most honest thinking happens when theory is complicated and enriched by lived testimony, requiring both careful reasoning and careful listening", "Philosophy should avoid personal experience"],
+        correct: 2,
+        explanation: "The story argues that the most meaningful philosophy doesn't choose between theory and experience but holds them in tension—using careful reasoning while remaining humble about knowledge limits and listening to those with direct experience of the subjects being discussed."
+      }
+    ]
+  }
+];
+
+export default function ReadingGame() {
+  const [currentLevel, setCurrentLevel] = useState(null);
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [score, setScore] = useState(0);
+  const [totalScore, setTotalScore] = useState(0);
+  const [showResult, setShowResult] = useState(false);
+  const [selectedAnswer, setSelectedAnswer] = useState(null);
+  const [answeredQuestions, setAnsweredQuestions] = useState([]);
+  const [showStory, setShowStory] = useState(true);
+  const [completedLevels, setCompletedLevels] = useState([]);
+
+  const currentStory = currentLevel !== null ? stories[currentLevel] : null;
+
+  const handleAnswer = (answerIndex) => {
+    if (selectedAnswer !== null) return;
+    
+    setSelectedAnswer(answerIndex);
+    const isCorrect = answerIndex === currentStory.questions[currentQuestion].correct;
+    
+    if (isCorrect) {
+      setScore(score + 1);
+      setTotalScore(totalScore + 1);
+    }
+    
+    setAnsweredQuestions([...answeredQuestions, {
+      question: currentQuestion,
+      correct: isCorrect
+    }]);
+  };
+
+  const nextQuestion = () => {
+    if (currentQuestion < currentStory.questions.length - 1) {
+      setCurrentQuestion(currentQuestion + 1);
+      setSelectedAnswer(null);
+    } else {
+      setShowResult(true);
+      if (!completedLevels.includes(currentLevel)) {
+        setCompletedLevels([...completedLevels, currentLevel]);
+      }
+    }
+  };
+
+  const selectLevel = (level) => {
+    setCurrentLevel(level);
+    setCurrentQuestion(0);
+    setScore(0);
+    setShowResult(false);
+    setSelectedAnswer(null);
+    setAnsweredQuestions([]);
+    setShowStory(true);
+  };
+
+  const returnToMenu = () => {
+    setCurrentLevel(null);
+    setShowStory(true);
+  };
+
+  const nextLevel = () => {
+    if (currentLevel < stories.length - 1) {
+      selectLevel(currentLevel + 1);
+    } else {
+      returnToMenu();
+    }
+  };
+
+  // Level Selection Screen
+  if (currentLevel === null) {
+    const easyLevels = stories.filter(s => s.difficulty === "Easy");
+    const mediumLevels = stories.filter(s => s.difficulty === "Medium");
+    const hardLevels = stories.filter(s => s.difficulty === "Hard");
+
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-400 via-purple-300 to-pink-300 p-4 md:p-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="bg-white rounded-3xl shadow-2xl p-8 mb-8">
+            <div className="text-center mb-8">
+              <h1 className="text-5xl font-bold text-purple-600 mb-4">📚 Reading Quest</h1>
+              <p className="text-xl text-gray-600">Choose your level and start reading!</p>
+              <div className="mt-4 flex items-center justify-center gap-3 bg-yellow-100 px-6 py-3 rounded-full">
+                <Trophy className="text-yellow-600" size={32} />
+                <span className="text-2xl font-bold text-gray-800">Total Score: {totalScore}</span>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              {/* Easy Levels */}
+              <div>
+                <h2 className="text-2xl font-bold text-green-600 mb-4">🌟 Easy Levels</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {easyLevels.map((story, idx) => (
+                    <button
+                      key={story.level}
+                      onClick={() => selectLevel(story.level - 1)}
+                      className="bg-green-50 hover:bg-green-100 border-2 border-green-300 rounded-xl p-4 text-left transition-all hover:scale-105"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-lg font-bold text-green-700">Level {story.level}</span>
+                        {completedLevels.includes(story.level - 1) && (
+                          <CheckCircle className="text-green-600" size={24} />
+                        )}
+                      </div>
+                      <p className="text-gray-800 font-medium">{story.title}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Medium Levels */}
+              <div>
+                <h2 className="text-2xl font-bold text-orange-600 mb-4">⭐ Medium Levels</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {mediumLevels.map((story, idx) => (
+                    <button
+                      key={story.level}
+                      onClick={() => selectLevel(story.level - 1)}
+                      className="bg-orange-50 hover:bg-orange-100 border-2 border-orange-300 rounded-xl p-4 text-left transition-all hover:scale-105"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-lg font-bold text-orange-700">Level {story.level}</span>
+                        {completedLevels.includes(story.level - 1) && (
+                          <CheckCircle className="text-orange-600" size={24} />
+                        )}
+                      </div>
+                      <p className="text-gray-800 font-medium">{story.title}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Hard Levels */}
+              <div>
+                <h2 className="text-2xl font-bold text-red-600 mb-4">🔥 Hard Levels</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {hardLevels.map((story, idx) => (
+                    <button
+                      key={story.level}
+                      onClick={() => selectLevel(story.level - 1)}
+                      className="bg-red-50 hover:bg-red-100 border-2 border-red-300 rounded-xl p-4 text-left transition-all hover:scale-105"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-lg font-bold text-red-700">Level {story.level}</span>
+                        {completedLevels.includes(story.level - 1) && (
+                          <CheckCircle className="text-red-600" size={24} />
+                        )}
+                      </div>
+                      <p className="text-gray-800 font-medium">{story.title}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Results Screen
+  if (showResult) {
+    const percentage = Math.round((score / currentStory.questions.length) * 100);
+    const isPerfect = score === currentStory.questions.length;
+    
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-400 via-pink-300 to-yellow-300 p-8 flex items-center justify-center">
+        <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-2xl w-full text-center">
+          <div className="mb-6">
+            {isPerfect ? (
+              <div className="text-6xl mb-4">🏆</div>
+            ) : percentage >= 66 ? (
+              <div className="text-6xl mb-4">⭐</div>
+            ) : (
+              <div className="text-6xl mb-4">📚</div>
+            )}
+          </div>
+          <h2 className="text-4xl font-bold text-purple-600 mb-2">Level {currentStory.level} Complete!</h2>
+          <p className="text-xl text-gray-600 mb-4">{currentStory.title}</p>
+          <p className="text-3xl font-bold text-gray-800 mb-4">
+            Score: {score} out of {currentStory.questions.length}
+          </p>
+          <p className="text-xl text-gray-600 mb-8">
+            {isPerfect && "Perfect! You're a reading master! 🌟"}
+            {!isPerfect && percentage >= 66 && "Great job! Keep it up! 📖"}
+            {percentage < 66 && "Good effort! Try again to improve! 💪"}
+          </p>
+          <div className="flex gap-4 justify-center">
+            <button
+              onClick={returnToMenu}
+              className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-8 py-4 rounded-full font-bold text-xl hover:scale-105 transition-transform shadow-lg"
+            >
+              Level Menu
+            </button>
+            {currentLevel < stories.length - 1 && (
+              <button
+                onClick={nextLevel}
+                className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-8 py-4 rounded-full font-bold text-xl hover:scale-105 transition-transform shadow-lg flex items-center gap-2"
+              >
+                Next Level <ArrowRight size={24} />
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Story Screen
+  if (showStory) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-400 via-purple-300 to-pink-300 p-4 md:p-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
+            <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-6 text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-sm font-semibold mb-1">Level {currentStory.level} - {currentStory.difficulty}</div>
+                  <h1 className="text-3xl font-bold">{currentStory.title}</h1>
+                </div>
+                <button
+                  onClick={returnToMenu}
+                  className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-full font-semibold transition-all"
+                >
+                  Menu
+                </button>
+              </div>
+            </div>
+
+            <div className="p-8">
+              <div className="bg-purple-50 p-6 rounded-2xl mb-6 max-h-96 overflow-y-auto">
+                <p className="text-lg leading-relaxed text-gray-800 whitespace-pre-line">
+                  {currentStory.text}
+                </p>
+              </div>
+              <p className="text-center text-gray-600 text-lg mb-6">
+                Read the story carefully, then answer the questions!
+              </p>
+              <button
+                onClick={() => setShowStory(false)}
+                className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-4 rounded-xl font-bold text-xl hover:scale-105 transition-transform shadow-lg"
+              >
+                Start Questions! 🚀
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Questions Screen
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-400 via-purple-300 to-pink-300 p-4 md:p-8">
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
+          <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-6 text-white">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-sm font-semibold mb-1">Level {currentStory.level} - {currentStory.difficulty}</div>
+                <h1 className="text-2xl font-bold">{currentStory.title}</h1>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 bg-white/20 px-4 py-2 rounded-full">
+                  <Star size={24} className="text-yellow-300" />
+                  <span className="text-2xl font-bold">{score}/{currentStory.questions.length}</span>
+                </div>
+                <button
+                  onClick={returnToMenu}
+                  className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-full font-semibold transition-all"
+                >
+                  Menu
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-8">
+            <div className="mb-6">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-lg font-semibold text-gray-600">
+                  Question {currentQuestion + 1} of {currentStory.questions.length}
+                </span>
+                <div className="flex gap-2">
+                  {currentStory.questions.map((_, idx) => (
+                    <div
+                      key={idx}
+                      className={`w-3 h-3 rounded-full ${
+                        idx < currentQuestion
+                          ? answeredQuestions[idx]?.correct
+                            ? 'bg-green-500'
+                            : 'bg-red-500'
+                          : idx === currentQuestion
+                          ? 'bg-purple-500'
+                          : 'bg-gray-300'
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-purple-50 p-6 rounded-2xl mb-8">
+              <h3 className="text-2xl font-bold text-gray-800 mb-6">
+                {currentStory.questions[currentQuestion].question}
+              </h3>
+
+              <div className="space-y-4">
+                {currentStory.questions[currentQuestion].options.map((option, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleAnswer(index)}
+                    disabled={selectedAnswer !== null}
+                    className={`w-full p-4 rounded-xl text-left text-lg font-medium transition-all ${
+                      selectedAnswer === null
+                        ? 'bg-white hover:bg-purple-100 hover:scale-102 border-2 border-purple-200'
+                        : selectedAnswer === index
+                        ? index === currentStory.questions[currentQuestion].correct
+                          ? 'bg-green-100 border-2 border-green-500'
+                          : 'bg-red-100 border-2 border-red-500'
+                        : index === currentStory.questions[currentQuestion].correct
+                        ? 'bg-green-100 border-2 border-green-500'
+                        : 'bg-gray-100 border-2 border-gray-300'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span>{option}</span>
+                      {selectedAnswer !== null && (
+                        index === currentStory.questions[currentQuestion].correct ? (
+                          <CheckCircle className="text-green-600" size={24} />
+                        ) : selectedAnswer === index ? (
+                          <XCircle className="text-red-600" size={24} />
+                        ) : null
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {selectedAnswer !== null && (
+              <div className="mb-6">
+                <div className={`p-4 rounded-xl ${
+                  selectedAnswer === currentStory.questions[currentQuestion].correct
+                    ? 'bg-green-50 border-2 border-green-300'
+                    : 'bg-blue-50 border-2 border-blue-300'
+                }`}>
+                  <p className="text-gray-800 text-lg">
+                    <strong>Explanation:</strong> {currentStory.questions[currentQuestion].explanation}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {selectedAnswer !== null && (
+              <button
+                onClick={nextQuestion}
+                className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-4 rounded-xl font-bold text-xl hover:scale-105 transition-transform shadow-lg"
+              >
+                {currentQuestion < currentStory.questions.length - 1 ? 'Next Question →' : 'See Results! 🎉'}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
