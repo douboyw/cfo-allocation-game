@@ -22,7 +22,7 @@
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             width: 100%;
         }
 
@@ -45,7 +45,7 @@
 
         .games-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
             gap: 40px;
             padding: 0 20px;
         }
@@ -70,7 +70,7 @@
         .game-icon {
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             border-radius: 20px;
-            height: 200px;
+            height: 180px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -80,6 +80,10 @@
 
         .game-card:nth-child(2) .game-icon {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .game-card:nth-child(3) .game-icon {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
         }
 
         .game-card h2 {
@@ -92,6 +96,7 @@
             color: #666;
             line-height: 1.6;
             margin-bottom: 20px;
+            font-size: 0.95rem;
         }
 
         .tags {
@@ -113,6 +118,8 @@
         .tag.blue { background: #dbeafe; color: #2563eb; }
         .tag.green { background: #d1fae5; color: #059669; }
         .tag.orange { background: #fed7aa; color: #ea580c; }
+        .tag.teal { background: #ccfbf1; color: #0f766e; }
+        .tag.pink { background: #fce7f3; color: #be185d; }
 
         .play-button {
             width: 100%;
@@ -140,11 +147,25 @@
             box-shadow: 0 10px 30px rgba(240, 147, 251, 0.4);
         }
 
+        .game-card:nth-child(3) .play-button {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+
+        .game-card:nth-child(3) .play-button:hover {
+            box-shadow: 0 10px 30px rgba(67, 233, 123, 0.4);
+        }
+
         .footer {
             text-align: center;
             margin-top: 60px;
             color: rgba(255, 255, 255, 0.8);
             font-size: 0.9rem;
+        }
+
+        @media (max-width: 1200px) {
+            .games-grid {
+                grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            }
         }
 
         @media (max-width: 768px) {
@@ -156,6 +177,13 @@
             }
             .games-grid {
                 grid-template-columns: 1fr;
+            }
+            .game-card {
+                padding: 30px;
+            }
+            .game-icon {
+                height: 150px;
+                font-size: 80px;
             }
         }
     </style>
@@ -198,6 +226,22 @@
                     <span class="tag green">🏆 Achievements</span>
                 </div>
                 <button class="play-button">Play Math Challenge →</button>
+            </a>
+
+            <!-- Reading Quest Game -->
+            <a href="reading-quest.html" class="game-card">
+                <div class="game-icon">📚</div>
+                <h2>Reading Quest</h2>
+                <p>
+                    Journey through 20 engaging stories with increasing difficulty! Answer comprehension questions, 
+                    unlock levels, and become a reading champion with stories from easy to advanced.
+                </p>
+                <div class="tags">
+                    <span class="tag green">📖 20 Levels</span>
+                    <span class="tag teal">🎯 Comprehension Skills</span>
+                    <span class="tag pink">⭐ Easy to Hard</span>
+                </div>
+                <button class="play-button">Play Reading Quest →</button>
             </a>
         </div>
 
